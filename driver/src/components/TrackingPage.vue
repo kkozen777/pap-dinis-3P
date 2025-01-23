@@ -33,7 +33,7 @@ export default {
       this.startTrackingLocation();
       this.checkRouteStatus();
       console.log("a enviar localizacao...")
-    }, 10000); // fazer a cada 10 segundos para testes, mas ao entregar atualizar para 20
+    }, 1000); // fazer a cada 10 segundos para testes, mas ao entregar atualizar para 20
   },
   beforeUnmount() {
     if (this.watchId) {
@@ -103,8 +103,8 @@ export default {
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,  // Tempo máximo de espera para obter a localização
-          maximumAge: 0,   // Não usar localização armazenada em cache
+          timeout: 100000,  // Tempo máximo de espera para obter a localização
+          //  maximumAge: 0,   // Não usar localização armazenada em cache
         }
       );
     },

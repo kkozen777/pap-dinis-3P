@@ -1,147 +1,139 @@
 <template>
-  <div class="signup-page">
-    <h1>Signup</h1>
+  <div class="signup-container">
+    <h2>Sign Up</h2>
     <form @submit.prevent="handleSignup">
-      <div class="form-group">
-        <input
-          type="text"
-          id="name"
-          v-model="name"
-          placeholder="Name"
-          required
-        />
+      <div class="input-group">
+        <input v-model="email" type="text" placeholder="Email" required />
       </div>
-      <div class="form-group">
-        <input
-          type="email"
-          id="email"
-          v-model="email"
-          placeholder="Email"
-          required
-        />
+      <div class="input-group">
+        <input v-model="password" type="password" placeholder="Password" required />
       </div>
-      <div class="form-group">
-        <input
-          type="password"
-          id="password"
-          v-model="password"
-          placeholder="Password"
-          required
-        />
+      <div class="input-group">
+        <input v-model="confirmPassword" type="password" placeholder="Confirm Password" required />
       </div>
-      <button type="submit">Signup</button>
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      <p v-if="error" class="error-message">{{ error }}</p>
+      <button type="submit" class="sign-up-button">Sign Up</button>
+      <p class="sign-in-text">Already have an account? <a href="#" @click.prevent="goToLogin">Login</a></p>
     </form>
   </div>
 </template>
 
-
 <script>
-import authService from "@/services/authService";
+import authService from '@/services/authService';
 
 export default {
-  name: "SignupPage",
   data() {
     return {
-      name: "",
-      email: "",
-      password: "",
-      errorMessage: "",
+      email: '',
+      password: '',
+      confirmPassword: '',
+      error: null,
     };
   },
   methods: {
     async handleSignup() {
+      console.log("Signup button clicked!");
+      if (this.password !== this.confirmPassword) {
+        this.error = "Passwords do not match.";
+        return;
+      }
       try {
-        const user = { name: this.name, email: this.email, password: this.password };
-        await authService.signup(user); // Call the signup service
-        this.$router.push("/"); // Redirects to the login page
-      } catch (error) {
-        this.errorMessage = error.response?.data?.message || "Failed to signup. Please try again.";
+        const credentials = { email: this.email, password: this.password };
+        const response = await authService.signup(credentials);
+        console.log("Signup response:", response);
+
+        if (response.status === 201) {
+          this.$router.push('/');
+        } else {
+          throw new Error(response.message || 'Signup error.');
+        }
+      } catch (err) {
+        console.error("Signup error:", err);
+        console.log(err)
+        // Verifica se o erro veio da API e se é "User already exists"
+        if (err.response?.status === 400) {
+          this.error = "User already exists.";
+        } else {
+          this.error = err.response?.data?.error || 'Error creating user.';
+        }
       }
     },
-  },
+    goToLogin() {
+      this.$router.push('/');
+    }
+  }
 };
 </script>
-
-<style scoped>
+<style>
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #121212; /* Fundo escuro */
-  color: #e0e0e0; /* Texto claro */
+  background-color: #1e1e1e;
+  color: #e0e0e0;
 }
 
-.signup-page {
+.signup-container {
   max-width: 400px;
   margin: 100px auto;
   padding: 20px;
-  background-color: #1e1e1e; /* Fundo da área de signup */
+  background-color: #1e1e1e;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-h1 {
   text-align: center;
-  margin-bottom: 20px;
-  color: #ffffff; /* Título */
 }
 
-.form-group {
-  position: relative;
-  margin-bottom: 20px;
+h2 {
+  color: #ffffff;
+}
+
+.input-group {
+  margin-bottom: 15px;
 }
 
 input {
-  width: 95%;
+  width: calc(100% - 20px);
   padding: 10px;
   font-size: 1rem;
   border: 1px solid #333;
   border-radius: 4px;
-  background-color: #2c2c2c; /* Fundo do input */
-  color: #ffffff; /* Texto do input */
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  background-color: #2c2c2c;
+  color: #ffffff;
 }
 
 input:focus {
   outline: none;
-  border-color: #6200ea; /* Destaque ao focar */
-  background-color: #3a3a3a; /* Fundo ao focar */
+  border-color: #00c6ff;
+  background-color: #3a3a3a;
 }
 
-input::placeholder {
-  color: #b0b0b0; /* Cor do placeholder */
-  transition: opacity 0.3s ease; /* Transição suave */
-}
-
-input:focus::placeholder {
-  opacity: 0; /* Esconde o placeholder ao digitar */
-}
-
-button {
+.sign-up-button {
   width: 100%;
   padding: 10px;
   font-size: 1rem;
   border: none;
   border-radius: 4px;
-  background-color: #6200ea; /* Cor do botão */
-  color: #ffffff;
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+  color: white;
   cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-button:hover {
-  background-color: #3700b3; /* Cor ao passar o mouse */
+.sign-up-button:hover {
+  background: linear-gradient(to right, #0072ff, #00c6ff);
 }
 
-button:disabled {
-  background-color: #555;
-  cursor: not-allowed;
+.sign-in-text {
+  font-size: 0.9rem;
+  color: white;
 }
 
-.error {
-  color: #ff6b6b; /* Mensagem de erro */
+.sign-in-text a {
+  color: #00c6ff;
+  cursor: pointer;
+}
+
+.error-message {
+  color: #ff6b93;
   font-size: 0.9rem;
   text-align: center;
-  margin-top: 10px;
 }
 </style>

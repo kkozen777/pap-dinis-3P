@@ -77,7 +77,7 @@ export default {
         id: null,
         name: '',
         driverNumber: '',
-        password: '',
+        password: '', // Inicialmente vazio
       },
     };
   },
@@ -86,6 +86,11 @@ export default {
       try {
         const response = await driverService.getDrivers();
         this.drivers = response.data.drivers;
+
+        // Remover a senha para não exibir nos motoristas listados
+        this.drivers.forEach(driver => {
+          delete driver.password; // Não exibir a senha
+        });
       } catch (error) {
         console.error("Erro ao buscar motoristas:", error);
       } finally {
@@ -95,7 +100,9 @@ export default {
     openModal(type, driver = null) {
       this.modalType = type;
       if (type === 'edit' && driver) {
+        // Copiar os dados do motorista, mas com a senha vazia
         this.modalDriver = { ...driver };
+        this.modalDriver.password = ''; // Deixar o campo de senha vazio para edição
       } else {
         this.modalDriver = { id: null, name: '', driverNumber: '', password: '' };
       }
@@ -108,6 +115,11 @@ export default {
       try {
         const driverData = { ...this.modalDriver };
         delete driverData.id;
+
+        // Se a senha estiver vazia, não enviar a senha ao backend
+        if (!driverData.password) {
+          delete driverData.password;
+        }
 
         const response = await driverService.createDriver(driverData);
         this.drivers.push(response.data.driver); // Atualiza a lista de motoristas
@@ -124,18 +136,27 @@ export default {
         // Cria uma cópia dos dados para evitar reatividade indesejada
         const driverData = { ...this.modalDriver };
 
-        // Remove os campos que não devem ser enviados ao backend
+        // Remover a senha (e outros campos desnecessários) antes de enviar
         delete driverData.id;
         delete driverData.createdAt;
         delete driverData.updatedAt;
+
+        // Se a senha estiver vazia, não enviar ao backend
+        if (!driverData.password) {
+          delete driverData.password;
+        }
 
         // Atualiza o motorista
         const response = await driverService.updateDriver(this.modalDriver.id, driverData);
         console.log("Resposta da edição do motorista:", response.data);
 
         if (response.data && response.data.updatedDriver) {
+          // Aqui, você remove a senha da resposta antes de atualizar a lista
+          const updatedDriver = response.data.updatedDriver;
+          delete updatedDriver.password; // Remover a senha da resposta
+
           this.drivers = this.drivers.map(driver =>
-            driver.id === this.modalDriver.id ? response.data.updatedDriver : driver
+            driver.id === this.modalDriver.id ? updatedDriver : driver
           );
         } else {
           console.error("Dados do motorista atualizados estão ausentes:", response.data);
@@ -163,6 +184,7 @@ export default {
   },
 };
 </script>
+
 
 
 <style scoped>
@@ -228,7 +250,7 @@ h1 {
 }
 
 .modal-content {
-  background: white;
+  background: rgb(0, 0, 0);
   padding: 20px;
   border-radius: 10px;
   width: 400px;

@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-// const API_BASE_URL = 'https://38f7-2001-818-c5f6-ea00-d4f3-9c44-60f3-2527.ngrok-free.app';  // Replace with your actual API URL
-
-
 const API_BASE_URL = 'https://24bd-87-196-81-5.ngrok-free.app';  // Replace with your actual API URL
 // Create an axios instance
 const apiClient = axios.create({
@@ -15,13 +12,13 @@ const apiClient = axios.create({
   });
 
 
-async function getLatestLocation(routeId) {
+async function getRoutePath(routeId) {
     if (!routeId) {
       throw new Error("O Route ID é obrigatório para obter a localização.");
     }
   
     try {
-        const response = await apiClient.get(`/driversLocations/${routeId}/locations/latest`);
+        const response = await apiClient.get(`/routes/getRoutePath/${routeId}`);
         return response.data; // Assumindo que o servidor retorna { latitude, longitude }
     } catch (error) {
       console.error("Erro ao obter a última localização:", error);
@@ -33,5 +30,5 @@ async function getLatestLocation(routeId) {
   }
   
   export default {
-    getLatestLocation,
+    getRoutePath,
   };

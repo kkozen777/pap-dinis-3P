@@ -1,57 +1,90 @@
 <template>
-  <div>
-    <div>
+  <div class="app-container">
+    <!-- Header Section -->
+    <header>
+      <div class="settings-container">
+        <button @click="toggleMenu" class="settings-button">
+          <i class="settings-icon">⚙</i>
+        </button>
+        <div v-if="menuOpen" class="settings-menu">
+          <button @click="goToSettings" class="menu-item">Security</button>
+          <button @click="logout" class="menu-item">Logout</button>
+        </div>
+      </div>
       <h1>Welcome {{ name }}</h1>
-      <!-- Logout button -->
-      <button @click="logout">Logout</button>
-    </div>
+    </header>
 
-    <div v-if="loadingLines">Loading lines...</div>
-    <div v-if="loadingRoutes">Loading routes...</div>
+    <!-- Main Content Section -->
+    <main>
+      <!-- Loading States -->
+      <div v-if="loadingLines" class="loading">Loading lines...</div>
+      <div v-if="loadingRoutes" class="loading">Loading routes...</div>
 
-    <div v-if="!loadingRoutes && error" class="error">
-      {{ error }}
-    </div>
+      <!-- Error and Info Messages -->
+      <div v-if="!loadingRoutes && error" class="error">{{ error }}</div>
+      <div v-if="!loadingRoutes && noRoutesMessage" class="info">
+        {{ noRoutesMessage }}
+      </div>
 
-    <div v-if="!loadingRoutes && noRoutesMessage" class="info">
-      {{ noRoutesMessage }}
-    </div>
+      <!-- Line Selection -->
+      <section v-if="!loadingLines">
+        <label for="line-select" class="line-label">Select a Line:</label>
+        <select
+          id="line-select"
+          v-model="selectedLine"
+          @change="onLineChange"
+        >
+          <option value="" disabled>Select a line</option>
+          <option v-for="line in lines" :key="line.id" :value="line">
+            {{ line.name }}
+          </option>
+        </select>
+      </section>
 
-    <!-- Combo box to select line -->
-    <select v-if="!loadingLines" v-model="selectedLine" @change="onLineChange">
-      <option value="" disabled>Select a line</option>
-      <option v-for="line in lines" :key="line.id" :value="line.id">
-        {{ line.name }}
-      </option>
-    </select>
+      <!-- Display Schedules -->
+      <section v-if="selectedLine && selectedLine.schedules">
+        <h3><a :href="selectedLine.schedules" target="_blank">Schedules</a></h3>
+      </section>
 
-    <!-- Combo box to select route -->
-    <select
-      v-if="!loadingRoutes && routes.length > 0"
-      v-model="selectedRoute"
-    >
-      <option value="" disabled>Select a route</option>
-      <option v-for="route in routes" :key="route.id" :value="route.id">
-        {{ route.start_time }}
-      </option>
-    </select>
+      <!-- Route Selection -->
+      <section v-if="!loadingRoutes && routes.length > 0">
+        <label for="route-select">Select a Route:</label>
+        <select id="route-select" v-model="selectedRoute">
+          <option value="" disabled>Select a route</option>
+          <option v-for="route in routes" :key="route.id" :value="route.id">
+            {{ route.start_time }}
+          </option>
+        </select>
+      </section>
 
-    <!-- Details of the selected route -->
-    <div v-if="selectedRoute">
-      <h3>Selected Route Details</h3>
-      <p><strong>Status</strong> {{ selectedRouteDetails.status }}</p>
-      <p><strong>Start Time:</strong> {{ selectedRouteDetails.start_time }}</p>
-      <p><strong>End Time:</strong> {{ selectedRouteDetails.end_time }}</p>
-    </div>
+      <!-- Selected Route Details -->
+      <section v-if="selectedRoute">
+        <h3>Selected Route Details</h3>
+        <p><strong>Status:</strong>
+          <span v-if="selectedRouteDetails.status === '1'" class="running-status">
+            Running!
+            <span class="status-icon">🟢</span>
+          </span>
+          <span v-else class="stopped-status">
+            Stopped
+            <span class="status-icon">🔴</span>
+          </span>
+        </p>
+        <p><strong>Start Time:</strong> {{ selectedRouteDetails.start_time }}</p>
+        <p><strong>End Time:</strong> {{ selectedRouteDetails.end_time }}</p>
+      </section>
 
-    <!-- Button to search -->
-    <div v-if="selectedRoute || selectedLine">
-      <button @click="searchRoute" :disabled="loading">
-        Search
-      </button>
-    </div>
+      <!-- Search Button -->
+      <section v-if="selectedRoute || selectedLine">
+        <button @click="searchRoute" :disabled="loading">Search</button>
+      </section>
+    </main>
   </div>
 </template>
+
+
+
+
 
 <script>
 import authService from "@/services/authService";
@@ -71,29 +104,34 @@ export default {
       loadingRoutes: false,
       error: null,
       noRoutesMessage: null, // Specific message for "No routes available"
+      menuOpen: false, // State for the settings menu
     };
   },
   methods: {
+    async goToSettings(){
+      this.$router.push('/settings');
+    },
+    toggleMenu() {
+      this.menuOpen = !this.menuOpen; // Toggle the menu visibility
+    },
     logout() {
       try {
         const response = authService.logout(); // Calls the logout method from the service
-        if (response){
-          this.$router.push('/');
-        }else{
-          alert("erro!")
+        if (response) {
+          this.$router.push("/");
+        } else {
+          alert("Error!");
         }
-        
       } catch (error) {
         this.error = "Error while logging out. Please try again.";
       }
     },
-    // Fetches the lines from the API
     async fetchLines() {
       this.loadingLines = true;
       this.error = null;
       try {
         const response = await linesService.getLines();
-        this.lines = response.data; // Assuming the response returns an array of lines
+        this.lines = response.data;
       } catch (err) {
         this.error = "Failed to load lines. Please try again later.";
         console.error(err);
@@ -103,31 +141,27 @@ export default {
     },
     async searchRoute() {
       if (!this.selectedRoute || !this.selectedLine) {
-        alert("Por favor, selecione uma linha e uma rota.");
+        alert("Please select a line and a route.");
         return;
       }
 
       try {
-        // Verifica os detalhes da rota antes de continuar
         const response = await routesService.getRouteDetails(this.selectedRoute);
         const routeDetails = response.data.route;
-        // Verifica o status da rota
         if (routeDetails.status !== "1") {
-          alert("A rota selecionada não está ativa.");
+          alert("The selected route is not active.");
           return;
         }
 
-        // Redireciona para a página do mapa com o ID da rota como parâmetro
         this.$router.push({
           name: "MapPage",
           params: { routeId: this.selectedRoute },
         });
       } catch (err) {
-        console.error("Erro ao verificar os detalhes da rota:", err);
-        alert("Falha ao verificar os detalhes da rota. Tente novamente mais tarde.");
+        console.error("Error checking route details:", err);
+        alert("Failed to check route details. Please try again later.");
       }
     },
-    // Fetches the routes for the selected line
     async fetchRoutesForLine() {
       if (!this.selectedLine) {
         this.routes = [];
@@ -138,30 +172,24 @@ export default {
       this.loadingRoutes = true;
       this.error = null;
       this.routes = [];
-      this.noRoutesMessage = null; // To prevent the "no routes" message from always showing
+      this.noRoutesMessage = null;
 
       try {
-        const response = await routesService.getRoutesByLineId(this.selectedLine);
+        const response = await routesService.getRoutesByLineId(this.selectedLine.id);
         this.routes = response.data.data;
       } catch (err) {
-        // Checks if the error is a 404 (not found)
         if (err.response && err.response.status === 404) {
-          // If it's 404, assumes no routes available and shows the "no routes" message
           this.error = null;
-          this.noRoutesMessage = `No routes available for the selected line.`;
-          console.log("no routes");
+          this.noRoutesMessage = "No routes available for the selected line.";
         } else {
-          // For other types of errors, set a default error message
           this.error = "Failed to load routes. Please try again later.";
-          this.noRoutesMessage = null; // Make sure to clear "No routes" messages
+          this.noRoutesMessage = null;
           console.error("Error loading routes:", err);
         }
       } finally {
-        this.loadingRoutes = false; // Ends the loading state
+        this.loadingRoutes = false;
       }
     },
-
-    // Fetches the details of the selected route
     async fetchRouteDetails() {
       if (!this.selectedRoute) {
         this.selectedRouteDetails = {};
@@ -170,134 +198,224 @@ export default {
 
       try {
         const response = await routesService.getRouteDetails(this.selectedRoute);
-        this.selectedRouteDetails = response.data.route; // Corrected to access 'route'
-        console.log("Route details loaded:", this.selectedRouteDetails);
+        this.selectedRouteDetails = response.data.route;
       } catch (err) {
         this.error = "Failed to load route details. Please try again later.";
-        this.selectedRouteDetails = {}; // Clears old details in case of error
+        this.selectedRouteDetails = {};
         console.error(err);
       }
     },
-    // Handles the line change event
     onLineChange() {
-      this.selectedRoute = ""; // Resets the selected route when changing the line
-      this.routes = []; // Resets the routes when changing the line
-      this.error = null; // Clears error messages when changing the line
-      this.fetchRoutesForLine(); // Loads the routes for the new line
+      this.selectedRoute = "";
+      this.routes = [];
+      this.error = null;
+      this.fetchRoutesForLine();
     },
   },
   watch: {
-    // Watches changes in the selected route to fetch the details
     selectedRoute() {
       this.fetchRouteDetails();
     },
   },
   created() {
     if (this.isAuthenticated) {
-      this.name = authService.getTokenValue("name"); // Extracts the name from the token
+      this.name = authService.getTokenValue("name");
     }
-    this.fetchLines(); // Loads the lines when the component is created
+    this.fetchLines();
   },
 };
 </script>
 
 <style scoped>
-/* Fundo da página */
+/* General Styling */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #121212; /* Fundo escuro */
-  color: #e0e0e0; /* Texto claro */
+  font-family: 'Arial', sans-serif;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  line-height: 1.6;
 }
 
-/* Contêiner principal */
-div {
+/* App Container */
+.app-container {
   max-width: 600px;
-  margin: 50px auto;
+  margin: 40px auto;
   padding: 20px;
-  background-color: #1e1e1e; /* Fundo do componente */
+  background-color: #1e1e1e;
   border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* Título */
-h1 {
-  color: #ffffff;
-  text-align: center;
+/* Header */
+header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 20px;
 }
 
-/* Mensagem de erro */
-.error {
-  color: #ff6b6b;
-  font-size: 0.9rem;
-  margin-top: 10px;
+header h1 {
+  color: #ffffff;
+  margin: 0;
+  font-size: 1.5rem;
   text-align: center;
 }
 
-/* Mensagem de informação */
-.info {
-  color: #42b983;
-  font-size: 0.9rem;
-  margin-top: 10px;
-  text-align: center;
+.settings-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background-color: #00c6ff;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
-/* Botões */
-button {
-  display: block;
+.settings-button:hover {
+  background-color: #009bd3;
+}
+
+.settings-button:active {
+  transform: scale(0.9); /* Button click animation */
+}
+
+.settings-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: #2b2b2b;
+  border: 1px solid #444;
+  border-radius: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.settings-icon {
+  font-style: normal; /* Prevents any italic styling */
+}
+
+.menu-item {
   width: 100%;
-  padding: 10px;
+  padding: 10px 20px;
+  text-align: left;
+  background-color: #2b2b2b;
+  color: #ffffff;
   font-size: 1rem;
   border: none;
-  border-radius: 4px;
-  background-color: #6200ea;
-  color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
 }
 
-button:hover {
-  background-color: #3700b3;
+.menu-item:hover {
+  background-color: #444;
 }
 
-button:disabled {
-  background-color: #555;
-  cursor: not-allowed;
+.menu-item:active {
+  background-color: #009bd3;
 }
 
-/* Selects (comboboxes) */
+/* Main Content */
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Labels */
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.line-label {
+  color: #ffffff;
+}
+
+/* Select Dropdowns */
 select {
   width: 100%;
   padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #333;
-  border-radius: 4px;
-  background-color: #2c2c2c;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #2b2b2b;
   color: #ffffff;
-  margin-bottom: 15px;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  font-size: 1rem;
+  transition: border-color 0.3s, background-color 0.3s;
 }
 
 select:focus {
   outline: none;
-  border-color: #6200ea;
-  background-color: #3a3a3a;
+  border-color: #00c6ff;
+  background-color: #3b3b3b;
 }
 
-/* Detalhes da rota */
-h3 {
-  color: #ffffff;
-  margin-top: 20px;
+/* Error message */
+.error {
+  color: #ff6b6b;
+  text-align: center;
+  font-size: 0.95rem;
+  margin: 10px 0;
 }
 
-p {
-  color: #b0b0b0;
+/* Info message */
+.info {
+  color: #42b983;
+  text-align: center;
+  font-size: 0.95rem;
+  margin: 10px 0;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 12px;
   font-size: 1rem;
-  margin: 5px 0;
+  border: none;
+  border-radius: 5px;
+  background-color: #00c6ff;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
 }
 
-strong {
-  color: #e0e0e0;
+button:hover {
+  background-color: #009bd3;
+}
+
+button:disabled {
+  background-color: #444;
+  cursor: not-allowed;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+}
+
+.footer-button {
+  width: 100%;
+}
+
+a {
+  color: rgb(122, 186, 225);
+  text-decoration: none; /* Remove o sublinhado, opcional */
+}
+
+a:hover {
+  text-decoration: underline; /* Adiciona um sublinhado ao passar o mouse, opcional */
 }
 </style>

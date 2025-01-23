@@ -1,12 +1,14 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3000';  // Replace with your actual API URL
+// const API_BASE_URL = 'https://38f7-2001-818-c5f6-ea00-d4f3-9c44-60f3-2527.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://24bd-87-196-81-5.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
     headers: {
       'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning':true
     },
   });
   
@@ -118,6 +120,57 @@ async function login(body) {
   }
 }
 
+async function changePassword(currentPassword, newPassword) {
+  try {
+    const token = localStorage.getItem('authToken'); // Obtenha o token de autenticação
+    const response = await apiClient.post(
+      '/auth/change-password', // Endpoint da API
+      { currentPassword, newPassword }, // Corpo da requisição no formato correto
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Adiciona o token no cabeçalho
+        },
+      }
+    );
+    return response; // Retorna a resposta da API (ex: mensagem de sucesso)
+  } catch (error) {
+    console.error("Error changing password:", error);
+    throw new Error(error.response?.data?.message || "An error occurred");
+  }
+}
+
+// Método para alterar o email
+async function changeEmail(newEmail) {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await apiClient.post('/auth/change-email', newEmail,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data; // Retorna a resposta da API (ex: mensagem de sucesso)
+  } catch (error) {
+    console.error("Error changing email:", error);
+    throw new Error(error.response?.data?.message || "An error occurred");
+  }
+}
+
+// Método para excluir a conta
+async function deleteAccount() {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await apiClient.delete('/auth/change-password',{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    throw new Error(error.response?.data?.message || "An error occurred");
+  }
+}
+
 export default {
   login,
   signup,
@@ -125,5 +178,8 @@ export default {
   isAuthenticated,
   getTokenValue,
   isTokenExpired,
-  decodeToken
+  decodeToken,
+  changePassword,
+  changeEmail,
+  deleteAccount
 };

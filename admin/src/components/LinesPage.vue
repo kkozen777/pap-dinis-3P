@@ -20,7 +20,7 @@
             <td>{{ line.schedules || 'Sem horários disponíveis' }}</td>
             <td class="actions">
               <button class="edit-btn" @click="openModal('edit', line)">Editar Linha</button>
-              <button class="edit-route-btn" @click="navigateToRoutes(line.id)">Editar Rotas</button>
+              <button class="edit-route-btn" @click="goToRoutes(line.id)">Editar Rotas</button>
               <button class="delete-btn" @click="deleteLine(line.id)">Eliminar Linha</button>
             </td>
           </tr>
@@ -154,9 +154,12 @@ export default {
       }
     },
     // Navega para as rotas
-    navigateToRoutes(LineId) {
+    goToRoutes(LineId) {
       console.log("Navegando para rota com lineId:", LineId); // Log para depuração
-      this.$router.push({ name: 'routes', params: { lineId: LineId } });
+      this.$router.push({ 
+        name: 'routes', 
+        params: { lineId: LineId } 
+      });
     }
   },
   mounted() {
@@ -233,7 +236,7 @@ h1 {
 }
 
 .modal-content {
-  background: white;
+  background: rgb(0, 0, 0);
   padding: 20px;
   border-radius: 10px;
   width: 400px;

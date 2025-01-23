@@ -2,6 +2,7 @@
   <div class="button-container">
     <button @click="goToDriversPage">Drivers</button>
     <button @click="goToLinesAndRoutesPage">Rotas e Linhas</button>
+    <button @click="goToPathsPage">Paths</button>
   </div>
 </template>
 
@@ -14,6 +15,9 @@ export default {
     },
     goToLinesAndRoutesPage() {
       this.$router.push('/lines');
+    },
+    goToPathsPage() {
+      this.$router.push('/paths');
     },
   },
 };

@@ -3,6 +3,7 @@ import SignupPage from '@/components/SignupPage.vue';
 import LoginPage from '../components/LoginUserPage.vue';  // Assuming you already have the login component
 import IndexPage from '@/components/IndexPage.vue';
 import MapPage from '@/components/MapPage.vue';
+import SettingsPage from '@/components/SettingsPage.vue';
 import authService from '@/services/authService.js';
 import { nextTick } from 'vue';
 
@@ -10,6 +11,7 @@ const routes = [
   { path: '/', component: LoginPage }, // Login page
   { path: '/signup', component: SignupPage }, // Signup page
   { path: '/index', component: IndexPage, meta: { requiresAuth: true } }, // Protected page
+  { path: '/settings', component: SettingsPage, meta: { requiresAuth: true } }, // Protected page
   {
     path: '/map/:routeId', // Define the route with a dynamic parameter
     name: 'MapPage',
