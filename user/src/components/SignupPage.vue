@@ -32,32 +32,33 @@ export default {
   },
   methods: {
     async handleSignup() {
-      console.log("Signup button clicked!");
-      if (this.password !== this.confirmPassword) {
-        this.error = "Passwords do not match.";
-        return;
-      }
-      try {
-        const credentials = { email: this.email, password: this.password };
-        const response = await authService.signup(credentials);
-        console.log("Signup response:", response);
+  if (this.password !== this.confirmPassword) {
+    this.error = "Passwords do not match.";
+    return;
+  }
 
-        if (response.status === 201) {
-          this.$router.push('/');
-        } else {
-          throw new Error(response.message || 'Signup error.');
-        }
-      } catch (err) {
-        console.error("Signup error:", err);
-        console.log(err)
-        // Verifica se o erro veio da API e se é "User already exists"
-        if (err.response?.status === 400) {
-          this.error = "User already exists.";
-        } else {
-          this.error = err.response?.data?.error || 'Error creating user.';
-        }
-      }
-    },
+  try {
+    const credentials = { email: this.email, password: this.password, name: this.name };
+    const response = await authService.signup(credentials);
+
+    console.log("Signup response:", response);
+
+    // Verifica se a resposta contém a mensagem esperada
+    if (response.data?.message === "User created successfully") {
+      this.$router.push("/"); // Redireciona para a página inicial
+    } else {
+      throw new Error("Signup error."); // Apenas lança erro se a resposta não for esperada
+    }
+  } catch (err) {
+    console.error("Signup error:", err);
+
+    if (err.response?.status === 400) {
+      this.error = "User already exists.";
+    } else {
+      this.error = err.response?.data?.error || "Error creating user.";
+    }
+  }
+},
     goToLogin() {
       this.$router.push('/');
     }

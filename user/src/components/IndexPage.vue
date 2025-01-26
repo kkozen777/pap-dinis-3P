@@ -26,36 +26,50 @@
         {{ noRoutesMessage }}
       </div>
 
-      <!-- Line Selection -->
+      <!-- Line Search Input -->
       <section v-if="!loadingLines">
-        <label for="line-select" class="line-label">Select a Line:</label>
-        <select
-          id="line-select"
-          v-model="selectedLine"
-          @change="onLineChange"
-        >
-          <option value="" disabled>Select a line</option>
-          <option v-for="line in lines" :key="line.id" :value="line">
+        <label for="line-input" class="line-label">Select a Line:</label>
+        <input
+          id="line-input"
+          v-model="searchTerm"
+          @focus="showSuggestions = true"
+          @blur="hideSuggestionsWithDelay"
+          placeholder="Start typing a line..."
+          class="line-input"
+        />
+        
+        <!-- Dropdown Suggestions -->
+        <ul v-if="showSuggestions && filteredLines.length" class="suggestions">
+          <li 
+            v-for="line in filteredLines" 
+            :key="line.id" 
+            @mousedown.prevent="selectLine(line)"
+          >
             {{ line.name }}
-          </option>
-        </select>
+          </li>
+        </ul>
       </section>
 
       <!-- Display Schedules -->
       <section v-if="selectedLine && selectedLine.schedules">
-        <h3><a :href="selectedLine.schedules" target="_blank">Schedules</a></h3>
+        <h3>
+          <a :href="selectedLine.schedules" target="_blank">Schedules</a>
+        </h3>
       </section>
 
       <!-- Route Selection -->
-      <section v-if="!loadingRoutes && routes.length > 0">
-        <label for="route-select">Select a Route:</label>
-        <select id="route-select" v-model="selectedRoute">
-          <option value="" disabled>Select a route</option>
-          <option v-for="route in routes" :key="route.id" :value="route.id">
-            {{ route.start_time }}
-          </option>
-        </select>
-      </section>
+      <select
+      v-if="!loadingRoutes && routes.length > 0"
+      v-model="selectedRoute"
+      class="select"
+    >
+      <option :value="null" disabled>Select a route</option>
+      <option v-for="route in routes" :key="route.id" :value="route.id">
+        {{ route.start_time }}
+      </option>
+    </select>
+
+
 
       <!-- Selected Route Details -->
       <section v-if="selectedRoute">
@@ -82,62 +96,119 @@
   </div>
 </template>
 
-
-
-
-
 <script>
 import authService from "@/services/authService";
 import linesService from "@/services/linesService";
 import routesService from "@/services/routesService";
+import userService from "@/services/userService";
 
 export default {
   data() {
     return {
       name: null,
       lines: [],
+      searchTerm: "",
+      selectedLine: null,
+      showSuggestions: false,
       routes: [],
-      selectedLine: "",
       selectedRoute: "",
       selectedRouteDetails: {},
       loadingLines: false,
       loadingRoutes: false,
+      loading: false, // Propriedade adicionada
       error: null,
-      noRoutesMessage: null, // Specific message for "No routes available"
-      menuOpen: false, // State for the settings menu
+      noRoutesMessage: null,
+      menuOpen: false,
     };
   },
+  computed: {
+    filteredLines() {
+      return this.lines.filter(line =>
+        line.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    },
+  },
   methods: {
-    async goToSettings(){
-      this.$router.push('/settings');
-    },
-    toggleMenu() {
-      this.menuOpen = !this.menuOpen; // Toggle the menu visibility
-    },
-    logout() {
-      try {
-        const response = authService.logout(); // Calls the logout method from the service
-        if (response) {
-          this.$router.push("/");
-        } else {
-          alert("Error!");
-        }
-      } catch (error) {
-        this.error = "Error while logging out. Please try again.";
-      }
-    },
     async fetchLines() {
       this.loadingLines = true;
-      this.error = null;
       try {
         const response = await linesService.getLines();
-        this.lines = response.data;
+        this.lines = response.data || [];
       } catch (err) {
-        this.error = "Failed to load lines. Please try again later.";
-        console.error(err);
+        console.error("Failed to load lines", err);
       } finally {
         this.loadingLines = false;
       }
+    },
+    async fetchRoutesForLine() {
+      if (!this.selectedLine) {
+        this.routes = [];
+        this.error = null;
+        return;
+      }
+
+      this.loadingRoutes = true;
+      this.error = null;
+      this.routes = [];
+      this.noRoutesMessage = null;
+
+      try {
+        const response = await routesService.getRoutesByLineId(this.selectedLine.id);
+        this.routes = response.data.data;
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          this.error = null;
+          this.noRoutesMessage = "No routes available for the selected line.";
+        } else {
+          this.error = "Failed to load routes. Please try again later.";
+          console.error("Error loading routes:", err);
+        }
+      } finally {
+        this.loadingRoutes = false;
+
+        if (this.routes.length === 0) {
+          this.selectedRoute = null;
+          this.selectedRouteDetails = null;
+        }
+      }
+    },
+    selectLine(line) {
+      this.selectedLine = line;
+      this.searchTerm = line.name;
+      this.showSuggestions = false;
+
+      this.fetchRoutesForLine();
+      this.selectedRoute = null;
+      this.selectedRouteDetails = null;
+    },
+    async fetchRouteDetails() {
+      if (!this.selectedRoute) {
+        this.selectedRouteDetails = {};
+        return;
+      }
+
+      try {
+        const response = await routesService.getRouteDetails(this.selectedRoute);
+        this.selectedRouteDetails = response.data.route;
+      } catch (err) {
+        this.error = "Failed to load route details. Please try again later.";
+        console.error(err);
+      }
+    },
+    hideSuggestionsWithDelay() {
+      setTimeout(() => {
+        this.showSuggestions = false;
+      }, 200);
+    },
+    async goToSettings() {
+      this.$router.push("/settings");
+    },
+    toggleMenu() {
+      this.menuOpen = !this.menuOpen;
+    },
+    logout() {
+      authService.logout();
+      this.$router.push("/");
     },
     async searchRoute() {
       if (!this.selectedRoute || !this.selectedLine) {
@@ -162,55 +233,6 @@ export default {
         alert("Failed to check route details. Please try again later.");
       }
     },
-    async fetchRoutesForLine() {
-      if (!this.selectedLine) {
-        this.routes = [];
-        this.error = null;
-        return;
-      }
-
-      this.loadingRoutes = true;
-      this.error = null;
-      this.routes = [];
-      this.noRoutesMessage = null;
-
-      try {
-        const response = await routesService.getRoutesByLineId(this.selectedLine.id);
-        this.routes = response.data.data;
-      } catch (err) {
-        if (err.response && err.response.status === 404) {
-          this.error = null;
-          this.noRoutesMessage = "No routes available for the selected line.";
-        } else {
-          this.error = "Failed to load routes. Please try again later.";
-          this.noRoutesMessage = null;
-          console.error("Error loading routes:", err);
-        }
-      } finally {
-        this.loadingRoutes = false;
-      }
-    },
-    async fetchRouteDetails() {
-      if (!this.selectedRoute) {
-        this.selectedRouteDetails = {};
-        return;
-      }
-
-      try {
-        const response = await routesService.getRouteDetails(this.selectedRoute);
-        this.selectedRouteDetails = response.data.route;
-      } catch (err) {
-        this.error = "Failed to load route details. Please try again later.";
-        this.selectedRouteDetails = {};
-        console.error(err);
-      }
-    },
-    onLineChange() {
-      this.selectedRoute = "";
-      this.routes = [];
-      this.error = null;
-      this.fetchRoutesForLine();
-    },
   },
   watch: {
     selectedRoute() {
@@ -218,13 +240,20 @@ export default {
     },
   },
   created() {
-    if (this.isAuthenticated) {
-      this.name = authService.getTokenValue("name");
-    }
+    userService.getUserName()
+      .then(name => {
+        this.name = name || "User";
+      })
+      .catch(err => {
+        console.error("Failed to fetch user name:", err);
+        this.name = "User";
+      });
+
     this.fetchLines();
   },
 };
 </script>
+
 
 <style scoped>
 /* General Styling */
@@ -264,7 +293,43 @@ header h1 {
   font-size: 1.5rem;
   text-align: center;
 }
+.menu-item {
+  display: block;
+  padding: 8px;
+  color: #fff;
+  cursor: pointer;
+}
 
+.line-label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.line-input {
+  width: 90%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background: #333;
+  color: #fff;
+}
+
+.suggestions {
+  list-style: none;
+  background: #444;
+  padding: 0;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background: #555;
+}
 .settings-button {
   position: absolute;
   top: 0;

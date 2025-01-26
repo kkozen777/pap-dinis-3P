@@ -10,7 +10,6 @@
 </template>
 
 <script>
-// Importando os serviços necessários
 import locationsService from '@/services/locationsService';
 import driverService from '@/services/driverService';
 
@@ -21,126 +20,107 @@ export default {
       longitude: null,
       watchId: null,
       loading: false,
-      statusCheckInterval: null,  // Para verificar o status da rota
-      locationInterval: null,     // Para enviar a localização a cada 10 segundos
+      locationInterval: null,
+      statusInterval: null, // Separar os intervalos
     };
   },
   async mounted() {
-
+  try {
     await this.startTrackingLocation();
-    await this.checkRouteStatus();
-    this.locationInterval = setInterval(() => {
-      this.startTrackingLocation();
+    this.locationInterval = setInterval(() => this.trackLocation(), 10000); // Envia localização a cada 10s
+    this.statusInterval = setInterval(() => {
+      console.log('Verificando o status da rota a cada 20 segundos...');
       this.checkRouteStatus();
-      console.log("a enviar localizacao...")
-    }, 1000); // fazer a cada 10 segundos para testes, mas ao entregar atualizar para 20
-  },
+    }, 20000); // Verifica status a cada 20s
+  } catch (err) {
+    console.error('Erro ao iniciar o rastreamento:', err);
+    alert('Erro ao iniciar o rastreamento.');
+    this.$router.push('/driver');
+  }
+},
+
   beforeUnmount() {
-    if (this.watchId) {
-      clearInterval(this.watchId); // Limpar o intervalo para rastrear a localização
-    }
-    if (this.statusCheckInterval) {
-      clearInterval(this.statusCheckInterval); // Limpar o intervalo para verificar o status da rota
-    }
-    if (this.locationInterval) {
-      clearInterval(this.locationInterval); // Limpar o intervalo de envio de localização
-    }
+    this.clearIntervals();
   },
   methods: {
-    // Verifica se o motorista está em uma rota ativa
+    clearIntervals() {
+      if (this.locationInterval) clearInterval(this.locationInterval);
+      if (this.statusInterval) clearInterval(this.statusInterval);
+    },
+
     async startTrackingLocation() {
       const token = localStorage.getItem('authToken');
       try {
         const response = await driverService.getDriverStatus(token);
-        const hasActiveRoute = response.data;
 
-        if (hasActiveRoute) {
-          // Se o motorista tem uma rota ativa, começa a rastrear a localização
-          this.trackLocation();
-          this.checkRouteStatus();
+        if (response?.data?.status) {
+          this.trackLocation(); // Rastreia a localização inicial
         } else {
           alert('Driver is not on an active route.');
-          this.$router.push("/driver");
+          this.$router.push('/driver');
         }
       } catch (err) {
         console.error('Error checking route status:', err);
+        throw new Error('Failed to initialize tracking.');
       }
     },
 
-    // Rastreia a localização do motorista
     trackLocation() {
       if (!navigator.geolocation) {
         alert('Geolocation not supported by the browser.');
         return;
       }
-      
-    // Configura um intervalo para rastrear a localização a cada 10 segundos
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
 
-          // Atualiza as coordenadas apenas se tiverem mudado
           if (this.latitude !== latitude || this.longitude !== longitude) {
             this.latitude = latitude;
             this.longitude = longitude;
 
             console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
-
-            // Envia a nova localização para o backend
             this.sendLocation(latitude, longitude);
           }
         },
         (error) => {
+          console.error('Error getting location:', error);
           if (error.code === error.PERMISSION_DENIED) {
-            // Usuário recusou o acesso à localização
-            console.log("hello world");
-            driverService.endRoute();
-            this.$router.push("/driver");
-          } else {
-            console.error('Error getting location:', error);
-            alert("Não foi possível obter a localização.");
+            alert('Location permission denied.');
+            this.endRoute();
           }
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 100000,  // Tempo máximo de espera para obter a localização
-          //  maximumAge: 0,   // Não usar localização armazenada em cache
-        }
+        { enableHighAccuracy: true, timeout: 10000 }
       );
     },
 
-    // Verifica o status da rota a cada 10 segundos
     async checkRouteStatus() {
+      const token = localStorage.getItem('authToken');
       try {
-        const token = localStorage.getItem('authToken');
         const response = await driverService.getDriverStatus(token);
-        const isRouteActive = response.data.status;
+        const isRouteActive = response?.data?.status;
 
-        // Se o status da rota for falso, interrompe os intervalos e redireciona
-        if (!isRouteActive || isRouteActive == null) {
-          console.log('Route has been ended.');
-          clearInterval(this.locationInterval);  // Para de enviar a localização
-          clearInterval(this.statusCheckInterval);  // Para de verificar o status da rota
+        if (!isRouteActive) {
+          console.log('Route has ended.');
+          this.clearIntervals();
           alert('Route has been ended.');
-          this.$router.push('/driver'); 
+          this.$router.push('/driver');
         }
       } catch (err) {
         console.error('Error checking route status:', err);
       }
     },
 
-    // Envia a localização para o backend
     async sendLocation(latitude, longitude) {
       try {
         await locationsService.sendLocation(latitude, longitude);
         console.log('Location sent successfully!');
       } catch (err) {
-        console.error(err.message);
+        console.error('Error sending location:', err);
         alert('Error sending location.');
       }
     },
 
-    // Finaliza a rota do motorista
     async endRoute() {
       this.loading = true;
       try {
@@ -148,48 +128,47 @@ export default {
         alert('Route successfully ended!');
         this.$router.push('/driver');
       } catch (err) {
-        console.error(err.message);
-        alert(err.message);
+        console.error('Error ending route:', err);
+        alert('Error ending route.');
       } finally {
         this.loading = false;
+        this.clearIntervals();
       }
     },
   },
 };
 </script>
-<!-- o scoped serve para fazer com que este css 
-seja aplicado apenas a esta pagina -->
-<style scoped> 
-  #app {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    text-align: center;
-  }
 
-  .coordinates {
-    font-size: 16px;
-    margin-bottom: 20px;
-    color: #ffffff;
-  }
+<style scoped>
+#app {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  text-align: center;
+}
 
-  button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+.coordinates {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
 
-  button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
+button {
+  padding: 10px 20px;
+  background-color: #00c6ff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
 
-  button:hover:not(:disabled) {
-    background-color: #0056b3;
-  }
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
 </style>
-

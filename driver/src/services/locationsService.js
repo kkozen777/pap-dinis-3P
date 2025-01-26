@@ -1,7 +1,7 @@
 // locationService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://24bd-87-196-81-5.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

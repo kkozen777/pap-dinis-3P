@@ -1,19 +1,30 @@
 <template>
-  <div class="login">
+  <div class="login-container">
     <h2>Driver Login</h2>
     <h2 v-if="isLoggedIn">Welcome!</h2>
     <form @submit.prevent="handleLogin">
-      <div>
-        <input v-model="driverNumber" type="number" placeholder="Driver Number" required />
+      <div class="input-group">
+        <input
+          v-model="driverNumber"
+          type="number"
+          placeholder="Driver Number"
+          required
+        />
       </div>
-      <div>
-        <input v-model="password" type="password" placeholder="Password" required />
+      <div class="input-group">
+        <input
+          v-model="password"
+          type="password"
+          placeholder="Password"
+          required
+        />
       </div>
-      <button type="submit">Login</button>
-      <p v-if="error" class="error">{{ error }}</p>
+      <button type="submit" class="login-button">Login</button>
+      <p v-if="error" class="error-message">{{ error }}</p>
     </form>
   </div>
 </template>
+
 
 
 <script>
@@ -58,96 +69,85 @@ export default {
 };
 </script>
 
-<style> 
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #121212; /* Cor de fundo escura */
-    color: #e0e0e0; /* Texto claro */
-  }
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #1e1e1e; /* Fundo escuro */
+  color: #e0e0e0; /* Texto claro */
+}
 
-  .login {
-    max-width: 400px;
-    margin: 100px auto;
-    padding: 20px;
-    background-color: #1e1e1e; /* Fundo da área de login */
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  }
+.login-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 20px;
+  background-color: #1e1e1e; /* Fundo do container */
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra */
+  text-align: center;
+}
 
-  h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #ffffff; /* Texto do título */
-  }
+h2 {
+  color: #ffffff; /* Cor do título */
+}
 
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
+.input-group {
+  margin-bottom: 25px; /* Espaço maior entre os campos */
+}
 
-  input {
-    width: 95%;
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #333;
-    border-radius: 4px;
-    background-color: #2c2c2c; /* Fundo dos inputs */
-    color: #ffffff; /* Texto dos inputs */
-    transition: border-color 0.3s ease, background-color 0.3s ease; /* Transições suaves */
-  }
+input {
+  width: calc(100% - 20px); /* Ajusta largura para respeitar padding */
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background-color: #2c2c2c; /* Fundo dos inputs */
+  color: #ffffff; /* Texto dos inputs */
+  transition: border-color 0.3s ease, background-color 0.3s ease; /* Transições suaves */
+}
 
-  input:focus {
-    outline: none;
-    border-color: #6200ea; /* Cor de destaque ao focar */
-    background-color: #3a3a3a; /* Destaque no fundo ao focar */
-  }
+input:focus {
+  outline: none;
+  border-color: #00c6ff; /* Borda azul ao focar */
+  background-color: #3a3a3a; /* Fundo mais claro ao focar */
+}
 
-  input::placeholder {
-    color: #b0b0b0; /* Cor do placeholder */
-    transition: opacity 0.3s ease; /* Transição para o placeholder */
-  }
+.login-button {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  background: linear-gradient(to right, #00c6ff, #0072ff); /* Gradiente azul */
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
 
-  input:focus::placeholder {
-    opacity: 0; /* Desaparece suavemente ao focar */
-  }
+.login-button:hover {
+  background: linear-gradient(to right, #0072ff, #00c6ff); /* Gradiente invertido no hover */
+}
 
-  button {
-    padding: 10px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 4px;
-    background-color: #670aea; /* Cor do botão */
-    color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
+.login-text {
+  font-size: 0.9rem;
+  margin: 10px 0;
+  color: #ffffff; /* Texto branco */
+}
 
-  button:hover {
-    background-color: #3700b3; /* Cor do botão ao passar o mouse */
-  }
+.login-text a {
+  color: #00c6ff; /* Azul claro no link */
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
 
-  button:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-  }
+.login-text a:hover {
+  color: #0072ff; /* Azul mais forte no hover */
+}
 
-  .login > button {
-    margin-bottom: 20px; /* Espaço entre o botão e o restante do formulário */
-    display: block;
-    width: 100%; /* Faz o botão ocupar toda a largura */
-  }
-
-  .error {
-    color: #ff6b93; /* Cor da mensagem de erro */
-    font-size: 0.9rem;
-    text-align: center;
-  }
-
-  p {
-    margin: 0;
-    text-align: center;
-  }
+.error-message {
+  color: #ff6b93; /* Vermelho claro para mensagens de erro */
+  font-size: 0.9rem;
+  text-align: center;
+}
 </style>
-

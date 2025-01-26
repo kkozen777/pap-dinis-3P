@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// const API_BASE_URL = 'https://38f7-2001-818-c5f6-ea00-d4f3-9c44-60f3-2527.ngrok-free.app';  // Replace with your actual API URL
-const API_BASE_URL = 'https://24bd-87-196-81-5.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
@@ -99,7 +98,7 @@ async function decodeToken() {
 async function signup(body) {
   try {
     const response = await apiClient.post('/auth/signup', body); // Make API call
-    return response.data; // Return the data from the response
+    return response; // Return the data from the response
   } catch (err) {
     console.error("Signup error:", err);
     // Check for specific error messages from the server
@@ -124,7 +123,7 @@ async function changePassword(currentPassword, newPassword) {
   try {
     const token = localStorage.getItem('authToken'); // Obtenha o token de autenticação
     const response = await apiClient.post(
-      '/auth/change-password', // Endpoint da API
+      '/auth/changeUserPassword', // Endpoint da API
       { currentPassword, newPassword }, // Corpo da requisição no formato correto
       {
         headers: {
@@ -132,7 +131,7 @@ async function changePassword(currentPassword, newPassword) {
         },
       }
     );
-    return response; // Retorna a resposta da API (ex: mensagem de sucesso)
+    return response.data; // Retorna a resposta da API (ex: mensagem de sucesso)
   } catch (error) {
     console.error("Error changing password:", error);
     throw new Error(error.response?.data?.message || "An error occurred");
@@ -143,11 +142,16 @@ async function changePassword(currentPassword, newPassword) {
 async function changeEmail(newEmail) {
   try {
     const token = localStorage.getItem('authToken');
-    const response = await apiClient.post('/auth/change-email', newEmail,{
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await apiClient.post('/auth/changeEmail', 
+      { email: newEmail },  // Aqui estamos garantindo que o corpo da requisição é um objeto JSON
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json" // Garante que o backend interprete como JSON
+        }
+      }
+    );
+    
     return response.data; // Retorna a resposta da API (ex: mensagem de sucesso)
   } catch (error) {
     console.error("Error changing email:", error);
@@ -159,7 +163,7 @@ async function changeEmail(newEmail) {
 async function deleteAccount() {
   try {
     const token = localStorage.getItem('authToken');
-    const response = await apiClient.delete('/auth/change-password',{
+    const response = await apiClient.delete('/auth/deleteAccount',{
       headers: {
         Authorization: `Bearer ${token}`,
       },

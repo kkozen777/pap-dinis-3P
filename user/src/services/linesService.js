@@ -1,10 +1,7 @@
 // src/services/apiService.js
 import axios from 'axios';
 
-// const API_BASE_URL = 'https://38f7-2001-818-c5f6-ea00-d4f3-9c44-60f3-2527.ngrok-free.app';
-
-
-const API_BASE_URL = 'https://24bd-87-196-81-5.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({

@@ -1,48 +1,59 @@
 <template>
-<div>
-    <div>
-      <h1>Welcome {{ name }}</h1>
-      <!-- Logout button -->
-      <button @click="logout">Logout</button>
+  <div class="app-container">
+    <div class="settings-container"> 
+      <button @click="toggleMenu" class="settings-button">
+        <i class="settings-icon">⚙</i>
+      </button>
+      <div v-if="menuOpen" class="settings-menu">
+        <button @click="goToSettings" class="menu-item">Security</button>
+        <button @click="logout" class="menu-item">Logout</button>
+      </div>
     </div>
+    
+    <div class="content-wrapper">
+      <h1 class="title">Welcome {{ name }}</h1>
 
-    <div v-if="loadingLines">Loading lines...</div>
-    <div v-if="loadingRoutes">Loading routes...</div>
+      <div class="status-messages">
+        <div v-if="loadingLines" class="info">Loading lines...</div>
+        <div v-if="loadingRoutes" class="info">Loading routes...</div>
+        <div v-if="!loadingRoutes && error" class="error">{{ error }}</div>
+        <div v-if="!loadingRoutes && noRoutesMessage" class="info">{{ noRoutesMessage }}</div>
+      </div>
 
-    <div v-if="!loadingRoutes && error" class="error">
-      {{ error }}
-    </div>
+      <div class="select-container">
+        <select
+          v-if="!loadingLines"
+          v-model="selectedLine"
+          class="select"
+          @change="onLineChange"
+        >
+          <option value="" disabled>Select a line</option>
+          <option v-for="line in lines" :key="line.id" :value="line.id">
+            {{ line.name }}
+          </option>
+        </select>
 
-    <div v-if="!loadingRoutes && noRoutesMessage" class="info">
-      {{ noRoutesMessage }}
-    </div>
+        <select
+          v-if="!loadingRoutes && routes.length > 0"
+          v-model="selectedRoute"
+          class="select"
+        >
+          <option value="" disabled>Select a route</option>
+          <option v-for="route in routes" :key="route.id" :value="route.id">
+            {{ route.start_time }}
+          </option>
+        </select>
+      </div>
 
-    <!-- Combo box to select line -->
-    <select v-if="!loadingLines" v-model="selectedLine" @change="onLineChange">
-      <option value="" disabled>Select a line</option>
-      <option v-for="line in lines" :key="line.id" :value="line.id">
-        {{ line.name }}
-      </option>
-    </select>
-
-    <!-- Combo box to select route -->
-    <select
-      v-if="!loadingRoutes && routes.length > 0"
-      v-model="selectedRoute"
-    >
-      <option value="" disabled>Select a route</option>
-      <option v-for="route in routes" :key="route.id" :value="route.id">
-        {{ route.start_time }}
-      </option>
-    </select>
-
-
-    <!-- button to bind a driver to a route -->
-    <div v-if="selectedRoute">
-      <button @click="bindDriverToRoute" :disabled="loading">Bind to driver</button>
+      <div v-if="selectedRoute">
+        <button class="button" @click="bindDriverToRoute" :disabled="loading">
+          Bind to driver
+        </button>
+      </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import authService from '@/services/authService';
@@ -53,6 +64,7 @@ import driverService from '@/services/driverService';
 export default {
   data() {
     return {
+      menuOpen: false, // controle do menu de configurações
       name: null, // name of the authenticated user
       lines: [], // list of available lines
       routes: [], // list of routes for the selected line
@@ -67,6 +79,12 @@ export default {
   },
 
   methods: {
+    toggleMenu() {
+      this.menuOpen = !this.menuOpen;
+    },
+    goToSettings() {
+      this.$router.push('/settings'); // Redireciona para a página de configurações
+    },
     logout() {
       // log out the user and redirect to the login page
       try {
@@ -170,87 +188,146 @@ export default {
 </script>
 
 <style scoped>
-  /* Fundo da página */
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #121212; /* Fundo escuro */
-    color: #e0e0e0; /* Texto claro */
-  }
+.app-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* Mais espaço entre os elementos */
+  position: relative;
+}
 
-  /* Contêiner principal */
-  div {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 20px;
-    background-color: #1e1e1e; /* Fundo do componente */
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  }
+.settings-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
 
-  /* Título */
-  h1 {
-    color: #ffffff;
-    text-align: center;
-    margin-bottom: 20px;
-  }
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Espaço entre os elementos internos */
+}
 
-  /* Mensagem de erro */
-  .error {
-    color: #ff6b6b;
-    font-size: 0.9rem;
-    margin-top: 10px;
-    text-align: center;
-  }
+.info {
+  color: #42b983;
+  text-align: center;
+  font-size: 0.95rem;
+  margin: 10px 0;
+}
+select:focus {
+  outline: none;
+  border-color: #00c6ff;
+  background-color: #3b3b3b;
+}
+.error {
+  color: #ff6b6b;
+  text-align: center;
+  font-size: 0.95rem;
+  margin: 10px 0;
+}
+.status-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Espaço entre mensagens de status */
+}
 
-  /* Mensagem de informação */
-  .info {
-    color: #42b983;
-    font-size: 0.9rem;
-    margin-top: 10px;
-    text-align: center;
-  }
+.select-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Espaço entre os selects */
+}
 
-  /* Botões */
-  button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 4px;
-    background-color: #6200ea;
-    color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #2b2b2b;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: border-color 0.3s, background-color 0.3s;
+}
 
-  button:hover {
-    background-color: #3700b3;
-  }
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  background-color: #00c6ff;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+.menu-item:hover {
+  background-color: #444;
+}
 
-  button:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-  }
+.menu-item:active {
+  background-color: #009bd3;
+}
+.settings-icon {
+  font-style: normal; /* Prevents any italic styling */
+}
 
-  /* Selects (comboboxes) */
-  select {
-    width: 100%;
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #333;
-    border-radius: 4px;
-    background-color: #2c2c2c;
-    color: #ffffff;
-    margin-bottom: 15px;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
-  }
+.menu-item {
+  width: 100%;
+  padding: 10px 20px;
+  text-align: left;
+  background-color: #2b2b2b;
+  color: #ffffff;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.settings-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: #2b2b2b;
+  border: 1px solid #444;
+  border-radius: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  overflow: hidden;
+}
+.settings-button:hover {
+  background-color: #009bd3;
+}
 
-  select:focus {
-    outline: none;
-    border-color: #6200ea;
-    background-color: #3a3a3a;
-  }
+.settings-button:active {
+  transform: scale(0.9); /* Button click animation */
+}
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background: #555;
+}
+.settings-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background-color: #00c6ff;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
 </style>
-

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../components/LoginDriverPage.vue';
 import DriverPage from '@/components/DriverPage.vue';
 import TrackingPage from '@/components/TrackingPage.vue';
+import SettingsPage from '@/components/SettingsPage.vue'
 import authService from '@/services/authService';
 import driverService from '@/services/driverService';
 import { nextTick } from 'vue';
@@ -10,6 +11,7 @@ const routes = [
   { path: '/', component: Login }, // Login page
   { path: '/driver', component: DriverPage, meta: { requiresAuth: true } }, // Driver page
   { path: '/tracking', component: TrackingPage, meta: { requiresAuth: true } }, // Tracking page
+  { path: '/settings', component: SettingsPage, meta: { requiresAuth: true } }, // Settings page
 ];
 
 const router = createRouter({
@@ -46,7 +48,6 @@ router.beforeEach(async (to, from, next) => {
     // Verifica o estado do motorista
     const response = await driverService.getDriverStatus();
     const hasActiveRoute = response.data;
-    console.log(" TEM ROTA ? ",hasActiveRoute);
     // Lógica de redirecionamento baseada no estado
     if (hasActiveRoute && to.path === "/driver") {
       return next("/tracking"); // Redireciona para o tracking

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://24bd-87-196-81-5.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
@@ -34,7 +34,6 @@ async function isAuthenticated() {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("asdjhknb",response.status)
     return response.status; // Return the data from the response
   }catch (error) {
     console.error("Error:", error);
@@ -60,7 +59,6 @@ async function getTokenValue(key) {
   }
 }
 
-// Verifica se o token está expirado
 // Verifica se o token está expirado
 async function isTokenExpired(token) {
   try {
@@ -110,11 +108,31 @@ async function login(body) {
   }
 }
 
+async function changePassword(currentPassword, newPassword) {
+  try {
+    const token = localStorage.getItem('authToken'); // Obtenha o token de autenticação
+    const response = await apiClient.post(
+      '/auth/changeDriverPassword', // Endpoint da API
+      { currentPassword, newPassword }, // Corpo da requisição no formato correto
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Adiciona o token no cabeçalho
+        },
+      }
+    );
+    return response.data; // Retorna a resposta da API (ex: mensagem de sucesso)
+  } catch (error) {
+    console.error("Error changing password:", error);
+    throw new Error(error.response?.data?.message || "An error occurred");
+  }
+}
+
 export default {
   login,
   logout,
   isAuthenticated,
   getTokenValue,
   isTokenExpired,
-  decodeToken
+  decodeToken,
+  changePassword,
 };
