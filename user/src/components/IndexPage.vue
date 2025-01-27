@@ -53,7 +53,7 @@
       <!-- Display Schedules -->
       <section v-if="selectedLine && selectedLine.schedules">
         <h3>
-          <a :href="selectedLine.schedules" target="_blank">Schedules</a>
+          <a :href="selectedLine.schedules" target="_blank">link: Schedules</a>
         </h3>
       </section>
 
@@ -80,12 +80,12 @@
             <span class="status-icon">🟢</span>
           </span>
           <span v-else class="stopped-status">
-            Stopped
+            Stopped!
             <span class="status-icon">🔴</span>
           </span>
         </p>
-        <p><strong>Start Time:</strong> {{ selectedRouteDetails.start_time }}</p>
-        <p><strong>End Time:</strong> {{ selectedRouteDetails.end_time }}</p>
+        <p><strong>Begans at:</strong> {{ selectedRouteDetails.start_time }}</p>
+        <p><strong>Ends at:</strong> {{ selectedRouteDetails.end_time }}</p>
       </section>
 
       <!-- Search Button -->
@@ -115,20 +115,22 @@ export default {
       selectedRouteDetails: {},
       loadingLines: false,
       loadingRoutes: false,
-      loading: false, // Propriedade adicionada
+      loading: false,
       error: null,
       noRoutesMessage: null,
       menuOpen: false,
     };
   },
   computed: {
+    //funcao para mostrar as linhas ao pesquisar
     filteredLines() {
       return this.lines.filter(line =>
-        line.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+        line.name.toLowerCase().includes(this.searchTerm.toLowerCase()) //para nao distinguir entre maiusculas e minusculas
       );
     },
   },
   methods: {
+    //ver todas as linhas
     async fetchLines() {
       this.loadingLines = true;
       try {
@@ -140,6 +142,7 @@ export default {
         this.loadingLines = false;
       }
     },
+    //mostrar as rotas da linha escolhida
     async fetchRoutesForLine() {
       if (!this.selectedLine) {
         this.routes = [];
@@ -165,7 +168,7 @@ export default {
         }
       } finally {
         this.loadingRoutes = false;
-
+        //caso a linha nao tenha rotas
         if (this.routes.length === 0) {
           this.selectedRoute = null;
           this.selectedRouteDetails = null;
@@ -195,6 +198,7 @@ export default {
         console.error(err);
       }
     },
+    //tempo para caso nenhum caracter corresponda a linha pesquisada
     hideSuggestionsWithDelay() {
       setTimeout(() => {
         this.showSuggestions = false;
@@ -203,6 +207,7 @@ export default {
     async goToSettings() {
       this.$router.push("/settings");
     },
+    //muda a variavel para abrir o menu
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
     },
@@ -219,6 +224,7 @@ export default {
       try {
         const response = await routesService.getRouteDetails(this.selectedRoute);
         const routeDetails = response.data.route;
+        //verifica se a rota realmente esta ativa
         if (routeDetails.status !== "1") {
           alert("The selected route is not active.");
           return;

@@ -1,5 +1,6 @@
 <template>
   <div class="login-container">
+    <img src="@/assets/logo.png" alt="fastBus Logo" class="logo" />
     <h2>User Login</h2>
     <h2 v-if="isLoggedIn">Welcome!</h2>
     <form @submit.prevent="handleLogin">
@@ -15,7 +16,6 @@
     </form>
   </div>
 </template>
-
 <script>
 import authService from '@/services/authService';
 
@@ -41,11 +41,9 @@ export default {
 
         // call the login service
         const response = await authService.login(credentials);
-        console.log(response);
         // save the token in localStorage
         if (response.token) {
           localStorage.setItem('authToken', response.token);
-          console.log('Token armazenado:', response.token); // Adicione isso para verificar se o token está correto
           this.isLoggedIn = true;
           this.error = null;
 
@@ -144,5 +142,10 @@ export default {
     color: #ff6b93; /* Vermelho claro para mensagens de erro */
     font-size: 0.9rem;
     text-align: center;
+  }
+  .logo {
+    width: 150px;
+    display: block;
+    margin: 0 auto 20px;
   }
 </style>

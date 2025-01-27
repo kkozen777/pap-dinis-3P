@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h1>Lista de Linhas</h1>
-    <div v-if="loading" class="loading">Carregando...</div>
+    <div v-if="loading" class="loading">Loading...</div>
     <div v-else>
       <table class="lines-table">
         <thead>

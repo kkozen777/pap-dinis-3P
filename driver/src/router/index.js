@@ -24,7 +24,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Obtém o token de autenticação
   const token = localStorage.getItem("authToken");
-  console.log("Token atual:", token);
+  // console.log("Token atual:", token);
 
   // Se o token não existe
   if (!token) {

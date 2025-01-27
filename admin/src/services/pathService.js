@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
 // Create an axios instance
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -16,8 +16,6 @@ async function getPaths() {
   
     try {
         const response = await apiClient.get(`/paths`);
-        const coordinates = response.data;
-        console.log(coordinates)
         return response; // Assumindo que o servidor retorna { latitude, longitude }
     } catch (error) {
       console.error("Erro ao obter a última localização:", error);

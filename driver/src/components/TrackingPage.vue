@@ -29,7 +29,7 @@ export default {
     await this.startTrackingLocation();
     this.locationInterval = setInterval(() => this.trackLocation(), 10000); // Envia localização a cada 10s
     this.statusInterval = setInterval(() => {
-      console.log('Verificando o status da rota a cada 20 segundos...');
+      console.log('Verifying route status 10 seconds');
       this.checkRouteStatus();
     }, 20000); // Verifica status a cada 20s
   } catch (err) {
@@ -101,7 +101,6 @@ export default {
         const isRouteActive = response?.data?.status;
 
         if (!isRouteActive) {
-          console.log('Route has ended.');
           this.clearIntervals();
           alert('Route has been ended.');
           this.$router.push('/driver');

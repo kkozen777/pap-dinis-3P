@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
@@ -98,7 +98,6 @@ async function decodeToken() {
 // Function to handle driver login
 async function login(body) {
   try {
-    console.log(body)
     const response = await apiClient.post('/auth/loginDriver', body); // Make API call
     return response.data; // Return the response data
   } catch (err) {

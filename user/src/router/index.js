@@ -30,7 +30,7 @@ router.beforeEach(async (to, from, next) => {
   await nextTick(); // Garante que o DOM está atualizado
 
   const token = localStorage.getItem("authToken");
-  console.log("Token atual:", token);
+  // console.log("Token atual:", token);
 
   if (!token) {
     // Se o token não existe e a rota requer autenticação, redireciona para login

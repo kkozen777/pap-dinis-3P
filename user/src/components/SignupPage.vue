@@ -41,13 +41,11 @@ export default {
     const credentials = { email: this.email, password: this.password, name: this.name };
     const response = await authService.signup(credentials);
 
-    console.log("Signup response:", response);
-
-    // Verifica se a resposta contém a mensagem esperada
+    // verifica se a resposta contém a resposta esperada
     if (response.data?.message === "User created successfully") {
-      this.$router.push("/"); // Redireciona para a página inicial
+      this.$router.push("/"); // redireciona para a página de login apos o signup ser feito
     } else {
-      throw new Error("Signup error."); // Apenas lança erro se a resposta não for esperada
+      throw new Error("Signup error.");
     }
   } catch (err) {
     console.error("Signup error:", err);

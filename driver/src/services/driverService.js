@@ -1,7 +1,7 @@
 // driverService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
 
 // create an axios instance
 const apiClient = axios.create({
@@ -30,7 +30,6 @@ async function bindDriverToRoute(routeId) {
     // Verifica se o motorista já está associado a uma rota ativa
     const response = await getDriverStatus(); // Aguardar a resposta do status do motorista
     const driverStatus = response.data;
-    console.log(driverStatus);
     // Se o motorista não tiver uma rota ativa, então associa a nova rota
     if (!driverStatus) {
       const body = {
@@ -113,7 +112,6 @@ async function getDriverName() {
         Authorization: `Bearer ${token}`, // sends the token in the header
       },
     });
-    console.log("nome do driver", response)
     if (response == null) {
       return false;
     }

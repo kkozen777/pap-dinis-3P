@@ -1,7 +1,7 @@
 // src/services/apiService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
 
 // create an axios instance
 const apiClient = axios.create({
@@ -21,7 +21,6 @@ function getRoutes() {
   return apiClient.get('/routes/');
 }
 function getRoutesByLineId(lineId) {
-  console.log(lineId)
   if (!lineId) throw new Error('lineId is required'); 
   return apiClient.get(`/routes/availableRoutes/${lineId}`);
 }

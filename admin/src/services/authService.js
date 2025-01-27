@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
@@ -10,20 +10,6 @@ const apiClient = axios.create({
       'ngrok-skip-browser-warning': 'true',
     },
   });
-  
-// Function to log the driver out by removing the token
-async function logout() {
-  try {
-    //fazer clear do cache
-    localStorage.removeItem('authToken'); // Remove the token from localStorage
-    return true;
-    // Optionally, you can redirect to login page here if needed
-  } catch (error) {
-    console.error("Error during logout:", error);
-    throw new Error("Failed to log out. Please try again later.");
-
-  }
-}
 
 async function isAuthenticated() {
   try {
@@ -33,7 +19,6 @@ async function isAuthenticated() {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("asdjhknb",response.status)
     return response.status; // Return the data from the response
   }catch (error) {
     console.error("Error:", error);
@@ -99,7 +84,6 @@ async function decodeToken() {
 // Function to handle driver login
 async function login(body) {
   try {
-    console.log(body)
     const response = await apiClient.post('/auth/loginAdmin', body); // Make API call
     return response.data; // Return the response data
   } catch (err) {
@@ -108,7 +92,18 @@ async function login(body) {
     throw new Error(err.response?.data?.message || "Login failed. Invalid credentials.");
   }
 }
+async function logout() {
+  try {
+    //fazer clear do cache
+    localStorage.removeItem('authToken'); // Remove the token from localStorage
+    return true;
+    // Optionally, you can redirect to login page here if needed
+  } catch (error) {
+    console.error("Error during logout:", error);
+    throw new Error("Failed to log out. Please try again later.");
 
+  }
+}
 export default {
   login,
   logout,

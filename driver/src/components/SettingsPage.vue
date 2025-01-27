@@ -43,7 +43,6 @@
       },
       async changePassword() {
         try {
-            console.log(this.currentPassword, this.newPassword)
           const result = await authService.changePassword(this.currentPassword, this.newPassword);
           this.message = result.message;
           this.messageType = "success";

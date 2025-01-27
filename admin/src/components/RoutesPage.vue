@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h1>Rotas para a Linha {{ lineId }}</h1>
-    <div v-if="loading" class="loading">Carregando...</div>
+    <div v-if="loading" class="loading">Loading...</div>
     <div v-else>
       <table class="routes-table">
         <thead>
@@ -53,8 +53,12 @@
             <input v-model="modalRoute.start_time" type="text" />
             <label>Hora de Fim:</label>
             <input v-model="modalRoute.end_time" type="text" />
-            <label>Status:</label>
-            <input v-model="modalRoute.status" type="text" />
+            
+            <!-- Campo status apenas no modo de edição -->
+            <div v-if="modalType === 'edit'">
+              <label>Status:</label>
+              <input v-model="modalRoute.status" type="text" />
+            </div>
           </div>
           <div class="modal-actions">
             <button type="submit" class="create-route-btn">{{ modalType === 'edit' ? 'Salvar Alterações' : 'Criar Rota' }}</button>
@@ -65,8 +69,6 @@
     </div>
   </div>
 </template>
-
-
 
 <script>
 import routesService from "@/services/routesService";
@@ -120,21 +122,20 @@ export default {
     },
     // Carrega o nome do path para cada rota
     async loadPathNames() {
-  for (let route of this.routes) {
-    try {
-      const pathResponse = await pathService.getPathById(route.pathId);
-      console.log(pathResponse.name)
-      if (pathResponse && pathResponse.name) {
-        route.pathName = pathResponse.name;
-      } else {
-        route.pathName = "Nome não encontrado"; // Valor padrão se o nome não for encontrado
+      for (let route of this.routes) {
+        try {
+          const pathResponse = await pathService.getPathById(route.pathId);
+          if (pathResponse && pathResponse.name) {
+            route.pathName = pathResponse.name;
+          } else {
+            route.pathName = "Nome não encontrado"; // Valor padrão se o nome não for encontrado
+          }
+        } catch (error) {
+          console.error("Erro ao buscar nome do path:", error);
+          route.pathName = "Erro ao carregar nome"; // Valor padrão em caso de erro
+        }
       }
-    } catch (error) {
-      console.error("Erro ao buscar nome do path:", error);
-      route.pathName = "Erro ao carregar nome"; // Valor padrão em caso de erro
-    }
-  }
-},
+    },
     // Abre o modal para criar ou editar
     openModal(type, route = null) {
       this.modalType = type;
@@ -158,69 +159,54 @@ export default {
     },
     // Cria uma nova rota
     async createRoute() {
-  try {
-    // Prepara os dados da nova rota
-    const routeData = { ...this.modalRoute };
-    delete routeData.id;
-
-    // Faz a requisição para criar a nova rota
-    const response = await routesService.createRoute(routeData);
-
-    if (response.data && response.data.route) {
-      // Adiciona a nova rota à lista local
-      const newRoute = response.data.route;
-      this.routes.push(newRoute);
-
-      // Carrega o nome do path associado à nova rota
-      const pathResponse = await pathService.getPathById(newRoute.pathId);
-      if (pathResponse && pathResponse.name) {
-        newRoute.pathName = pathResponse.name;
-      } else {
-        newRoute.pathName = "Nome não encontrado";
+      try {
+        const routeData = { ...this.modalRoute };
+        delete routeData.id;
+        delete routeData.status;
+        const response = await routesService.createRoute(routeData);
+        if (response.data && response.data.route) {
+          const newRoute = response.data.route;
+          const pathResponse = await pathService.getPathById(newRoute.pathId);
+          if (pathResponse && pathResponse.name) {
+            newRoute.pathName = pathResponse.name;
+          } else {
+            newRoute.pathName = "Nome não encontrado";
+          }
+          if (newRoute && pathResponse && pathResponse.name) {
+            newRoute.status = pathResponse.name;
+          }
+          this.closeModal();
+        }
+      } catch (error) {
+        console.error("Erro ao criar rota:", error.response?.data || error);
       }
-
-      // Fecha o modal
-      this.closeModal();
-    }
-  } catch (error) {
-    console.error("Erro ao criar rota:", error.response?.data || error);
-  }
-},
+    },
     // Edita uma rota existente
     async editRoute() {
-  try {
-    // Prepara os dados da rota a serem enviados na requisição
-    const routeData = { ...this.modalRoute };
-    delete routeData.id;
-    delete routeData.pathName;
-    delete routeData.schedule;
-    delete routeData.createdAt;
-    delete routeData.updatedAt;
+      try {
+        const routeData = { ...this.modalRoute };
+        delete routeData.id;
+        delete routeData.pathName;
+        delete routeData.createdAt;
+        delete routeData.updatedAt;
+        delete routeData.Schedule;
 
-    // Faz a requisição para atualizar a rota
-    console.log("Atualizando rota com ID:", this.modalRoute.id, routeData);
-    const response = await routesService.updateRoute(this.modalRoute.id, routeData);
-
-    if (response.data && response.data.updatedRoute) {
-      // Atualiza a rota na lista local
-      this.routes = this.routes.map(route =>
-        route.id === this.modalRoute.id ? response.data.updatedRoute : route
-      );
-
-      // Atualiza o nome do path associado (caso tenha sido alterado)
-      const pathResponse = await pathService.getPathById(response.data.updatedRoute.pathId);
-      const updatedRoute = this.routes.find(route => route.id === this.modalRoute.id);
-      if (updatedRoute && pathResponse && pathResponse.name) {
-        updatedRoute.pathName = pathResponse.name;
+        const response = await routesService.updateRoute(this.modalRoute.id, routeData);
+        if (response.data && response.data.updatedRoute) {
+          this.routes = this.routes.map(route =>
+            route.id === this.modalRoute.id ? response.data.updatedRoute : route
+          );
+          const pathResponse = await pathService.getPathById(response.data.updatedRoute.pathId);
+          const updatedRoute = this.routes.find(route => route.id === this.modalRoute.id);
+          if (updatedRoute && pathResponse && pathResponse.name) {
+            updatedRoute.pathName = pathResponse.name;
+          }
+          this.closeModal();
+        }
+      } catch (error) {
+        console.error("Erro ao editar rota:", error.response?.data || error);
       }
-
-      // Fecha o modal
-      this.closeModal();
-    }
-  } catch (error) {
-    console.error("Erro ao editar rota:", error.response?.data || error);
-  }
-},
+    },
     // Elimina uma rota
     async deleteRoute(routeId) {
       const confirmDelete = confirm("Tem certeza de que deseja eliminar esta rota?");
@@ -240,6 +226,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 /* Estilos semelhantes ao de LinesPage */

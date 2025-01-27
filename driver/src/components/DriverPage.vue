@@ -150,8 +150,6 @@ export default {
       this.error = null;
 
       try {
-        console.log('Binding driver to route:', this.selectedRoute);
-
         // call the service to bind the driver to the route
         await driverService.bindDriverToRoute(this.selectedRoute);
 

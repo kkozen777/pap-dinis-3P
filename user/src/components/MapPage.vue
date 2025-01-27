@@ -4,10 +4,9 @@
     rel="stylesheet"
   />
   <div class="map-container">
-    <!-- Mapa -->
+
     <div id="map" ref="map"></div>
 
-    <!-- Menu de botões na parte inferior -->
     <div class="menu-container">
       <div class="button-container">
         <button @click="goBack" class="circle-button">
@@ -61,12 +60,13 @@ export default {
       this.updateInterval = setInterval(async () => {
         await this.fetchLatestLocation();
         await this.getUserLocation();
-      }, 6000); // Atualiza a localização a cada 1 segundo
+      }, 1000); // Atualiza a localização a cada 1 segundo
     } catch (error) {
-      console.error("Erro ao montar o componente:", error);
+      console.error("Error mounting:", error);
     }
   },
   beforeUnmount() {
+    //para fechar e desligar tudo ao sair do mapa
     if (this.map) {
       this.map.off();
       this.map.eachLayer((layer) => {
@@ -76,12 +76,12 @@ export default {
     }
 
     if (this.updateInterval) {
-      clearInterval(this.updateInterval); // Limpa o intervalo
+      clearInterval(this.updateInterval);
       this.updateInterval = null;
     }
   },
   methods: {
-    // Inicialização do mapa
+    // para incialziar o  mapa
     initializeMap() {
       this.map = L.map(this.$refs.map, {
         zoomControl: false,
@@ -97,23 +97,23 @@ export default {
         }
       ).addTo(this.map);
 
-      // Remover a marcação de atribuição
+      // remover aquele texto que tinha embaixo no mapa
       const mapAttribution = document.querySelector('.leaflet-control-attribution');
       if (mapAttribution) {
         mapAttribution.style.display = 'none';
       }
 
       this.busStopsLayer.addTo(this.map);
-      this.map.on("zoomend", this.checkZoomLevel); // Verifica o nível de zoom
+      this.map.on("zoomend", this.checkZoomLevel); // verifica o nível de zoom
     },
 
-    // Carrega os dados iniciais
+    // carrega os dados iniciais, basicamente tudo o que e preciso para abrir a pagina corretamente
     async loadInitialData() {
       // await this.fetchBusStops();
       await this.fetchLatestLocation();
       await this.getUserLocation();
       await this.goToTheBus();
-      await this.drawRoute(); // Desenha a rota no mapa
+      await this.drawRoute(); // desenha a rota no mapa
     },
 
     calculateDistance(lat1, lon1, lat2, lon2) {
@@ -137,7 +137,7 @@ export default {
 
       if (distanceInMeters < 1000) {
         // Se a distância for menor que 1000 metros, exibe em metros
-        return `${Math.round(distanceInMeters)} metros`;
+        return `${Math.round(distanceInMeters)} metters`;
       } else {
         // Se a distância for maior ou igual a 1000 metros, exibe em quilômetros com uma casa decimal
         const distanceInKmFormatted = distanceInKm.toFixed(1);
@@ -149,7 +149,7 @@ export default {
         const path = await pathService.getRoutePath(this.RouteId);
 
         if (!path || !path.route.coordinates) {
-          throw new Error("Nenhuma rota encontrada para este ID.");
+          throw new Error("No routes found for this ID.");
         }
 
         const coordinates = JSON.parse(path.route.coordinates);
@@ -182,15 +182,15 @@ export default {
                   const userLat = position.coords.latitude;
                   const userLon = position.coords.longitude;
 
-                  // Chamada assíncrona para obter a localização do motorista
-                  console.log(driverLat, driverLon)
-                  console.log(locationService.getLatestLocation(this.RouteId));
+                  // console.log(driverLat, driverLon)
+                  // console.log(locationService.getLatestLocation(this.RouteId));
+
                   // Calcular a distância com as coordenadas específicas do marcador
                   const distanceUser = this.calculateDistance(userLat, userLon, stopLat, stopLon);
                   const distanceDriver = this.calculateDistance(driverLat, driverLon, stopLat, stopLon);
 
-                  console.log(`Distância user calculada para ${stopName}: ${distanceUser} metros`);
-                  console.log(`Distância driver calculada para ${stopName}: ${distanceDriver} metros`);
+                  // console.log(`Distância user calculada para ${stopName}: ${distanceUser} metros`);
+                  // console.log(`Distância driver calculada para ${stopName}: ${distanceDriver} metros`);
 
                   const formattedUserDistance = this.formatDistance(distanceUser);
                   const formattedDriverDistance = this.formatDistance(distanceDriver);
@@ -198,19 +198,18 @@ export default {
                   const popupContent = `
                     <div>
                       <strong>${stopName}</strong><br/>
-                      Distância de ti: ${formattedUserDistance}<br/>
-                      Distância do autocarro: ${formattedDriverDistance}
+                      Distance from you: ${formattedUserDistance}<br/>
+                      Distance from the bus: ${formattedDriverDistance}
                     </div>
                   `;
                   marker.bindPopup(popupContent).openPopup();
                 },
                 (error) => {
-                  console.error("Erro ao obter localização do utilizador:", error);
-                  alert("Erro ao obter a localização do utilizador.");
+                  alert("Error getting user location.", error);
                 }
               );
             } catch (error) {
-              console.error("Erro no clique do marcador:", error);
+              console.error("Error clicking the marker:", error);
             }
           });
         });
@@ -232,10 +231,10 @@ export default {
             }).addTo(this.map);
           })
           .catch(error => {
-            console.error("Erro ao obter a rota:", error);
+            console.error("Error getting the route:", error);
           });
       } catch (error) {
-        console.error("Erro ao desenhar a rota:", error);
+        console.error("Erro drawing the route:", error);
       }
     },
 
@@ -262,7 +261,6 @@ export default {
     //       this.markers.push(marker);
     //     });
 
-    //     console.log("Paragens de autocarros adicionadas ao mapa.");
     //   } catch (err) {
     //     console.error("Erro ao buscar paragens de autocarro:", err);
     //   }
@@ -287,44 +285,43 @@ export default {
 
         const busIcon = new L.Icon({
           iconUrl: busIconPng,
-          iconSize: [54, 54],
-          iconAnchor: [16, 32],
+          iconSize: [54, 54], // tamanho do icon
+          iconAnchor: [27, 27],
         });
 
-        // Se o marcador do ônibus já existir, reposicione-o
+        // se o marcador do bus já existir, reposiciona o em vez de apagar
         if (this.busMarker) {
-          this.busMarker.setLatLng([latitude, longitude]); // Atualiza a posição
+          this.busMarker.setLatLng([latitude, longitude]); // atualiza a posição
         } else {
-          // Caso contrário, cria um novo marcador
+          // caso contrário, cria um novo marker
           this.busMarker = L.marker([latitude, longitude], { icon: busIcon }).addTo(this.map);
         }
 
-        // Adiciona um evento de clique no marcador do autocarro
+        // ao clicar no icon do bus
         this.busMarker.on("click", () => {
           navigator.geolocation.getCurrentPosition(
             async (position) => {
               const userLat = position.coords.latitude;
               const userLon = position.coords.longitude;
 
-              // Calcula a distância entre a localização do usuário e a do autocarro
+              // calcula a distância entre a localização do user e a do autocarro
               const distance = this.calculateDistance(userLat, userLon, latitude, longitude);
               
-              // Formata a distância
-              const formattedDistance = await this.formatDistance(distance); // Convertendo para km, pois o cálculo de distância pode retornar em metros
+              // formata a distância
+              const formattedDistance = await this.formatDistance(distance);
 
               const popupContent = `
                 <div>
                   <strong>Autocarro</strong><br/>
-                  Distância: ${formattedDistance}
+                  Distance from you: ${formattedDistance}
                 </div>
               `;
               
-              // Exibe o popup com a distância calculada
+              // mostra o popup com a distância calculada
               this.busMarker.bindPopup(popupContent).openPopup();
             },
             (error) => {
-              console.error("Erro ao obter localização do utilizador:", error);
-              alert("Erro ao obter a localização do utilizador.");
+              alert("Error getting user location.",error);
             }
           );
         });
@@ -333,7 +330,7 @@ export default {
       }
     },
 
-    // Localiza o utilizador
+    // localiza o utilizador
     async getUserLocation() {
       try {
         navigator.geolocation.watchPosition(
@@ -347,19 +344,18 @@ export default {
               popupAnchor: [0, -32],
             });
 
-            // Se o marcador do usuário já existir, reposicione-o
+            // se o marcador do user já existir, reposiciona o
             if (this.userLocationMarker) {
-              this.userLocationMarker.setLatLng([latitude, longitude]); // Atualiza a posição
+              this.userLocationMarker.setLatLng([latitude, longitude]); // atualiza a posição
             } else {
-              // Caso contrário, cria um novo marcador
+              // caso contrário, cria um novo marker
               this.userLocationMarker = L.marker([latitude, longitude], { icon: userIcon })
-                .bindPopup("Tou aqui rei :)")
+                .bindPopup("Eu")
                 .addTo(this.map);
             }
           },
           (error) => {
-            console.error("Erro ao obter localização do utilizador:", error);
-            alert("Não foi possível obter a localização.", error);
+            alert("Error getting user location", error);
           },
           {
             enableHighAccuracy: true,
@@ -368,26 +364,26 @@ export default {
           }
         );
       } catch (err) {
-        console.error("Erro ao buscar localização do utilizador:", err);
+        console.error("Error on the user location:", err);
       }
     },
 
-    // Voltar à página anterior
+    // volta à página anterior
     goBack() {
       this.$router.push("/index");
     },
 
-    // Centraliza o mapa na localização do autocarro
+    // vai para onde esta o driver
     async goToTheBus() {
       try {
         const { latitude, longitude } = await locationService.getLatestLocation(this.RouteId);
         this.map.setView([latitude, longitude], 15);
       } catch (err) {
-        console.error("Erro ao centralizar no autocarro:", err);
+        console.error("Error going to the bus:", err);
       }
     },
 
-    // Centraliza o mapa na localização do utilizador
+    // vai para onde esta o user
     goToUserLocation() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -395,7 +391,7 @@ export default {
           this.map.setView([latitude, longitude], 15);
         },
         (err) => {
-          console.error("Erro ao centralizar no utilizador:", err);
+          console.error("Error going to the user:", err);
         }
       );
     },

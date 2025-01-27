@@ -1,11 +1,11 @@
 <template>
   <div class="settings-container">
-    <!-- Botão de voltar -->
+
     <button class="back-button" @click="goBack">⬅</button>
 
     <h1>Settings</h1>
 
-    <!-- Alterar Senha -->
+
     <div class="section">
       <h3>Change Password</h3>
       <input v-model="currentPassword" type="password" placeholder="Current Password" />
@@ -13,20 +13,20 @@
       <button @click="changePassword">Change Password</button>
     </div>
 
-    <!-- Alterar Email -->
+
     <div class="section">
       <h3>Change Email</h3>
       <input v-model="newEmail" type="email" placeholder="New Email" />
       <button @click="changeEmail">Change Email</button>
     </div>
 
-    <!-- Excluir Conta -->
+
     <div class="section">
       <h3>Delete Account</h3>
       <button @click="deleteAccount" class="delete-button">Delete Account</button>
     </div>
 
-    <!-- Mensagem de Erro ou Sucesso -->
+
     <div v-if="message" :class="messageType" class="message">{{ message }}</div>
   </div>
 </template>
@@ -42,7 +42,7 @@
         newPassword: "",
         newEmail: "",
         message: "",
-        messageType: "", // Pode ser "error" ou "success"
+        messageType: "",
       };
     },
     methods: {

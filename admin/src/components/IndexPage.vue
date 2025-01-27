@@ -1,5 +1,6 @@
 <template>
   <div class="button-container">
+    <button @click="logout">Logout</button>
     <button @click="goToDriversPage">Drivers</button>
     <button @click="goToLinesAndRoutesPage">Rotas e Linhas</button>
     <button @click="goToPathsPage">Paths</button>
@@ -7,6 +8,7 @@
 </template>
 
 <script>
+import authService from '@/services/authService'
 export default {
   name: "indexPage",
   methods: {
@@ -18,6 +20,15 @@ export default {
     },
     goToPathsPage() {
       this.$router.push('/paths');
+    },
+    logout() {
+      // log out the user and redirect to the login page
+      try {
+        authService.logout();
+        this.$router.push('/');
+      } catch (error) {
+        this.error = "Error during logout. Please try again.";
+      }
     },
   },
 };

@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h1>Lista de Motoristas</h1>
-    <div v-if="loading" class="loading">Carregando...</div>
+    <div v-if="loading" class="loading">Loading...</div>
     <div v-else>
       <table class="drivers-table">
         <thead>
@@ -237,23 +237,30 @@ h1 {
 }
 
 .modal-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 1000;
+  overflow: hidden; /* Impede o modal de sair da tela */
 }
+
 
 .modal-content {
   background: rgb(0, 0, 0);
   padding: 20px;
   border-radius: 10px;
   width: 400px;
+  overflow-y: auto; /* Adiciona rolagem vertical */
+  max-height: calc(100vh - 40px); /* Limita a altura ao tamanho da janela, com margem */
+  overflow-y: auto; /* Adiciona rolagem vertical quando necessário */
+  flex-direction: column; /* Para separar o conteúdo do rodapé */
+
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 

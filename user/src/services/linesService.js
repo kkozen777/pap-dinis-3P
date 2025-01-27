@@ -1,7 +1,7 @@
 // src/services/apiService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://39b4-87-196-81-48.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
@@ -18,10 +18,8 @@ const apiClient = axios.create({
  * @returns {Promise} - Promise with the response data (list of routes)
  */
 async function getLines() {
-  console.log("Fetching lines...");
   return apiClient.get('/lines/')
     .then(response => {
-      console.log("API response:", response); // Log para verificar os dados retornados
       return response;
     })
     .catch(error => {

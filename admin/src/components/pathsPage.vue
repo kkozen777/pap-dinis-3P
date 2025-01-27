@@ -1,7 +1,7 @@
 <template>
     <div class="container">
       <h1>Gestão de Paths</h1>
-      <div v-if="loading" class="loading">Carregando...</div>
+      <div v-if="loading" class="loading">Loading...</div>
       <div v-else>
         <table class="paths-table">
           <thead>
@@ -368,6 +368,10 @@
     padding: 20px;
     border-radius: 5px;
     width: 60%;
+    
+    height: 100%;
+    overflow: auto;
+
   }
   
   .modal-actions {
