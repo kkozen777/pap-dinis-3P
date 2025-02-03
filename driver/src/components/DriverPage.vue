@@ -179,7 +179,7 @@ export default {
       this.name = "Driver"; // caso de erro
     });
 
-  this.fetchLines(); // Fetch lines ao inicializar
+  this.fetchLines(); // Fetch lines ao inicializar o componente
 }
 };
 </script>

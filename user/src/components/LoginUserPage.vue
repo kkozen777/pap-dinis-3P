@@ -1,6 +1,6 @@
 <template>
   <div class="login-container">
-    <img src="@/assets/logo.png" alt="fastBus Logo" class="logo" />
+    <!-- <img src="@/assets/logo.png" alt="fastBus Logo" class="logo" /> -->
     <h2>User Login</h2>
     <h2 v-if="isLoggedIn">Welcome!</h2>
     <form @submit.prevent="handleLogin">

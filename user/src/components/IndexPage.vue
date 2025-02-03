@@ -206,7 +206,6 @@ export default {
         this.selectedRouteDetails = response.data.route;
         if(this.selectedRouteDetails.status == '1'){
           this.getStarted_at();
-          console.log("hello")
         }
       } catch (err) {
         this.error = "Failed to load route details. Please try again later.";

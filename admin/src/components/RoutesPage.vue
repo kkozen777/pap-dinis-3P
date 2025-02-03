@@ -43,7 +43,7 @@
         <h2>{{ modalType === 'edit' ? 'Edit Route' : 'Create Route' }}</h2>
         <form @submit.prevent="modalType === 'create' ? createRoute() : editRoute()" class="route-form">
           <div class="form-group">
-            <label>Nome do Path:</label>
+            <label>Path name:</label>
             <select v-model="modalRoute.pathId" required>
               <option v-for="path in paths" :key="path.id" :value="path.id">
                 {{ path.name }}
@@ -61,7 +61,7 @@
             </div>
           </div>
           <div class="modal-actions">
-            <button type="submit" class="create-route-btn">{{ modalType === 'edit' ? 'Salve' : 'Create' }}</button>
+            <button type="submit" class="create-route-btn">{{ modalType === 'edit' ? 'Save' : 'Create' }}</button>
             <button type="button" class="cancel-btn" @click="closeModal">Cancel</button>
           </div>
         </form>

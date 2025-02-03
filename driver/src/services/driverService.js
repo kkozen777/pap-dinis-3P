@@ -66,7 +66,7 @@ async function endRoute() {
   }
 
   try {
-    const response = await apiClient.post('/driverRoute/unssign-route', {}, {
+    const response = await apiClient.post('/driverRoute/unassign-route', {}, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
