@@ -84,8 +84,9 @@
             <span class="status-icon">🔴</span>
           </span>
         </p>
-        <p><strong>Begans at:</strong> {{ selectedRouteDetails.start_time }}</p>
-        <p><strong>Ends at:</strong> {{ selectedRouteDetails.end_time }}</p>
+          <p v-if="selectedRouteDetails.status === '1'"><strong>Has began at:</strong> {{ route_started_at }}</p>
+          <p v-else><strong>Begans at:</strong> {{ selectedRouteDetails.start_time }}</p>
+          <p><strong>Ends at:</strong> {{ selectedRouteDetails.end_time }}</p>
       </section>
 
       <!-- Search Button -->
@@ -119,6 +120,7 @@ export default {
       error: null,
       noRoutesMessage: null,
       menuOpen: false,
+      route_started_at: "",
     };
   },
   computed: {
@@ -130,6 +132,15 @@ export default {
     },
   },
   methods: {
+    async getStarted_at(){
+      try {
+        const response = await routesService.getRouteStarted_At(this.selectedRouteDetails.id);
+        this.route_started_at = response.data || "Error getting the moment that the route began at.";
+        console.log(response )
+      } catch (err) { 
+        console.error("Failed get routeStartedAt", err);
+      }
+    },
     //ver todas as linhas
     async fetchLines() {
       this.loadingLines = true;
@@ -193,6 +204,10 @@ export default {
       try {
         const response = await routesService.getRouteDetails(this.selectedRoute);
         this.selectedRouteDetails = response.data.route;
+        if(this.selectedRouteDetails.status == '1'){
+          this.getStarted_at();
+          console.log("hello")
+        }
       } catch (err) {
         this.error = "Failed to load route details. Please try again later.";
         console.error(err);

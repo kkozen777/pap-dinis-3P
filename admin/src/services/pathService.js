@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://ca3e-2001-818-c5f6-ea00-d09d-62ca-e69e-c184.ngrok-free.app';  // Replace with your actual API URL
 // Create an axios instance
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -12,60 +12,59 @@ const apiClient = axios.create({
   });
 
 
-async function getPaths() {
-  
+  async function getPaths() {
     try {
         const response = await apiClient.get(`/paths`);
-        return response; // Assumindo que o servidor retorna { latitude, longitude }
+        return response;
     } catch (error) {
-      console.error("Erro ao obter a última localização:", error);
-      throw new Error(
-        error.response?.data?.message ||
-        "Não foi possível obter a localização. Verifique a conexão ou os parâmetros fornecidos."
-      );
+        console.error("Error fetching paths:", error);
+        throw new Error(
+            error.response?.data?.message ||
+            "Could not get paths. Check the connection or provided parameters."
+        );
     }
-  }
-  
+}
+
 async function getRoutePath(routeId) {
     if (!routeId) {
-      throw new Error("O Route ID é obrigatório para obter a localização.");
+        throw new Error("Route ID is required to fetch the route path.");
     }
-  
+
     try {
         const response = await apiClient.get(`/routes/getRoutePath/${routeId}`);
-        return response.data; // Assumindo que o servidor retorna { latitude, longitude }
+        return response.data;
     } catch (error) {
-      console.error("Erro ao obter a última localização:", error);
-      throw new Error(
-        error.response?.data?.message ||
-        "Não foi possível obter a localização. Verifique a conexão ou os parâmetros fornecidos."
-      );
+        console.error("Error fetching route path:", error);
+        throw new Error(
+            error.response?.data?.message ||
+            "Could not get the route path. Check the connection or provided parameters."
+        );
     }
-  }
+}
 
-  async function getPathById(pathId) {
+async function getPathById(pathId) {
     if (!pathId) {
-      throw new Error("O pathId ID é obrigatório para obter a localização.");
+        throw new Error("Path ID is required to fetch the location.");
     }
-  
+
     try {
         const response = await apiClient.get(`/paths/${pathId}`);
-        return response.data; // Assumindo que o servidor retorna { latitude, longitude }
+        return response.data;
     } catch (error) {
-      console.error("Erro ao obter a última localização:", error);
-      throw new Error(
-        error.response?.data?.message ||
-        "Não foi possível obter a localização. Verifique a conexão ou os parâmetros fornecidos."
-      );
+        console.error("Error fetching path by ID:", error);
+        throw new Error(
+            error.response?.data?.message ||
+            "Could not retrieve the path. Check the connection or provided parameters."
+        );
     }
-  }
+}
 
 function createPath(pathData) {
-        return apiClient.post(`/admin/createPath`, pathData); // Usando POST para criar um novo motorista
+        return apiClient.post(`/admin/createPath`, pathData); 
     }
 
 function updatePath(pathId, pathData) {
-        return apiClient.patch(`/admin/updatePath/${pathId}`, pathData); // Enviar os dados do motorista
+        return apiClient.patch(`/admin/updatePath/${pathId}`, pathData); 
     }
 
 function deletePath(pathId) {

@@ -1,34 +1,34 @@
 <template>
   <div class="container">
-    <h1>Lista de Motoristas</h1>
+    <h1>Drivers List</h1>
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else>
       <table class="drivers-table">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Nome</th>
-            <th>Número do Motorista</th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Driver Number</th>
             <th>Password</th>
-            <th>Ações</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(driver, index) in drivers" :key="driver.id">
-            <td>{{ index + 1 }}</td>
+          <tr v-for="(driver) in drivers" :key="driver.id">
+            <td>{{ driver.id }}</td>
             <td>{{ driver.name }}</td>
             <td>{{ driver.driverNumber }}</td>
             <td>{{ driver.password }}</td>
             <td class="actions">
-              <button class="edit-btn" @click="openModal('edit', driver)">Editar</button>
-              <button class="delete-btn" @click="deleteDriver(driver.id)">Eliminar</button>
+              <button class="edit-btn" @click="openModal('edit', driver)">Edit</button>
+              <button class="delete-btn" @click="deleteDriver(driver.id)">Delete</button>
             </td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <td colspan="5" style="text-align: center;">
-              <button class="add-btn" @click="openModal('create')">Adicionar Motorista</button>
+              <button class="add-btn" @click="openModal('create')">Create Driver</button>
             </td>
           </tr>
         </tfoot>
@@ -38,23 +38,23 @@
     <!-- Modal -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal-content">
-        <h2>{{ modalType === 'edit' ? 'Editar Motorista' : 'Adicionar Motorista' }}</h2>
+        <h2>{{ modalType === 'edit' ? 'Edit Driver' : 'Create Driver' }}</h2>
         <form @submit.prevent="modalType === 'create' ? createDriver() : editDriver()" class="driver-form">
           <div class="form-group">
-            <label>Nome:</label>
+            <label>Name:</label>
             <input v-model="modalDriver.name" type="text" required />
           </div>
           <div class="form-group">
-            <label>Número do Motorista:</label>
+            <label>Driver number:</label>
             <input v-model="modalDriver.driverNumber" type="number" required />
           </div>
           <div class="form-group">
             <label>Password:</label>
-            <input v-model="modalDriver.password" type="text" required />
+            <input v-model="modalDriver.password" type="text" />
           </div>
           <div class="modal-actions">
-            <button type="submit" class="save-btn">{{ modalType === 'edit' ? 'Salvar Alterações' : 'Criar Motorista' }}</button>
-            <button type="button" class="cancel-btn" @click="closeModal">Cancelar</button>
+            <button type="submit" class="save-btn">{{ modalType === 'edit' ? 'Save' : 'Create Driver' }}</button>
+            <button type="button" class="cancel-btn" @click="closeModal">Cancel</button>
           </div>
         </form>
 
@@ -77,7 +77,7 @@ export default {
         id: null,
         name: '',
         driverNumber: '',
-        password: '', // Inicialmente vazio
+        password: '',
       },
     };
   },
@@ -87,12 +87,12 @@ export default {
         const response = await driverService.getDrivers();
         this.drivers = response.data.drivers;
 
-        // Remover a senha para não exibir nos motoristas listados
+        // remover a pass para nao mostrar a pass dos drivers
         this.drivers.forEach(driver => {
-          delete driver.password; // Não exibir a senha
+          delete driver.password;
         });
       } catch (error) {
-        console.error("Erro ao buscar motoristas:", error);
+        console.error("Error getting drivers:", error);
       } finally {
         this.loading = false;
       }
@@ -100,9 +100,8 @@ export default {
     openModal(type, driver = null) {
       this.modalType = type;
       if (type === 'edit' && driver) {
-        // Copiar os dados do motorista, mas com a senha vazia
         this.modalDriver = { ...driver };
-        this.modalDriver.password = ''; // Deixar o campo de senha vazio para edição
+        this.modalDriver.password = ''; // campo de password vazio para edição
       } else {
         this.modalDriver = { id: null, name: '', driverNumber: '', password: '' };
       }
@@ -116,65 +115,52 @@ export default {
         const driverData = { ...this.modalDriver };
         delete driverData.id;
 
-        // Se a senha estiver vazia, não enviar a senha ao backend
-        if (!driverData.password) {
+        // se a password estiver vazia, não enviarao backend
+        if (
+          !driverData.password) {
           delete driverData.password;
         }
 
         const response = await driverService.createDriver(driverData);
-        this.drivers.push(response.data.driver); // Atualiza a lista de motoristas
+        this.drivers.push(response.data.driver); // ao criar, adiciona este driver a lista de drivers
 
         this.closeModal();
       } catch (error) {
-        console.error("Erro ao criar motorista:", error.response?.data || error);
+        console.error("Error getting drivers:", error.response?.data || error);
       }
     },
     async editDriver() {
       try {
-        console.log("Enviando dados para edição:", this.modalDriver);
-
-        // Cria uma cópia dos dados para evitar reatividade indesejada
         const driverData = { ...this.modalDriver };
 
-        // Remover a senha (e outros campos desnecessários) antes de enviar
         delete driverData.id;
         delete driverData.createdAt;
         delete driverData.updatedAt;
-
-        // Se a senha estiver vazia, não enviar ao backend
-        if (!driverData.password) {
+        if(!driverData.password){
           delete driverData.password;
         }
-
-        // Atualiza o motorista
         const response = await driverService.updateDriver(this.modalDriver.id, driverData);
-        console.log("Resposta da edição do motorista:", response.data);
-
-        if (response.data && response.data.updatedDriver) {
-          // Aqui, você remove a senha da resposta antes de atualizar a lista
-          const updatedDriver = response.data.updatedDriver;
-          delete updatedDriver.password; // Remover a senha da resposta
-
+        if (response.data && response.data.updateDriver) {
           this.drivers = this.drivers.map(driver =>
-            driver.id === this.modalDriver.id ? updatedDriver : driver
+          driver.id === this.modaldriver.id ? response.data.updateDriver : driver
           );
         } else {
-          console.error("Dados do motorista atualizados estão ausentes:", response.data);
+          console.error("Error updating", response.data);
         }
-
+        await this.fetchDrivers();
         this.closeModal();
       } catch (error) {
-        console.error("Erro ao editar motorista:", error.response?.data || error);
+        console.error("Error updating driver", error.response?.data || error);
       }
     },
     async deleteDriver(driverId) {
-      const confirmDelete = confirm("Tem certeza de que deseja eliminar este motorista?");
+      const confirmDelete = confirm("Are you sure that you want to delete this driver?");
       if (confirmDelete) {
         try {
           await driverService.deleteDriver(driverId);
           this.drivers = this.drivers.filter(driver => driver.id !== driverId);
         } catch (error) {
-          console.error("Erro ao eliminar motorista:", error);
+          console.error("Error deleting driver:", error);
         }
       }
     },

@@ -36,18 +36,15 @@
   
           // call the login service
           const response = await authService.login(credentials);
-          console.log(response);
           // save the token in localStorage
           if (response.token) {
             localStorage.setItem('authToken', response.token);
-            console.log('Token armazenado:', response.token); // Adicione isso para verificar se o token está correto
+
             this.isLoggedIn = true;
             this.error = null;
   
-            // redirect to the protected page
             this.$router.push('/index');
           } else {
-            // if the API does not return a token
             throw new Error('Token not found. Please check your credentials.');
           }
         } catch (err) {

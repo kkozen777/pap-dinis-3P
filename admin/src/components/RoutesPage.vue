@@ -7,11 +7,11 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Nome do Path</th>
-            <th>Hora de Início</th>
-            <th>Hora de Fim</th>
+            <th>Path name</th>
+            <th>Begans at</th>
+            <th>Ends at</th>
             <th>Status</th>
-            <th>Ações</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -20,17 +20,17 @@
             <td>{{ route.pathName }}</td>
             <td>{{ route.start_time || 'N/A' }}</td>
             <td>{{ route.end_time || 'N/A' }}</td>
-            <td>{{ route.status || 'N/A' }}</td>
+            <td>{{ route.status || 0 }}</td>
             <td class="actions">
-              <button class="edit-btn" @click="openModal('edit', route)">Editar</button>
-              <button class="delete-btn" @click="deleteRoute(route.id)">Eliminar</button>
+              <button class="edit-btn" @click="openModal('edit', route)">Edit</button>
+              <button class="delete-btn" @click="deleteRoute(route.id)">Delete</button>
             </td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <td colspan="6" style="text-align: center;">
-              <button class="add-btn" @click="openModal('create')">Adicionar Rota</button>
+              <button class="add-btn" @click="openModal('create')">Create Route</button>
             </td>
           </tr>
         </tfoot>
@@ -40,7 +40,7 @@
     <!-- Modal -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal-content">
-        <h2>{{ modalType === 'edit' ? 'Editar Rota' : 'Adicionar Rota' }}</h2>
+        <h2>{{ modalType === 'edit' ? 'Edit Route' : 'Create Route' }}</h2>
         <form @submit.prevent="modalType === 'create' ? createRoute() : editRoute()" class="route-form">
           <div class="form-group">
             <label>Nome do Path:</label>
@@ -49,9 +49,9 @@
                 {{ path.name }}
               </option>
             </select>
-            <label>Hora de Início:</label>
+            <label>Begans at:</label>
             <input v-model="modalRoute.start_time" type="text" />
-            <label>Hora de Fim:</label>
+            <label>Ends at:</label>
             <input v-model="modalRoute.end_time" type="text" />
             
             <!-- Campo status apenas no modo de edição -->
@@ -61,8 +61,8 @@
             </div>
           </div>
           <div class="modal-actions">
-            <button type="submit" class="create-route-btn">{{ modalType === 'edit' ? 'Salvar Alterações' : 'Criar Rota' }}</button>
-            <button type="button" class="cancel-btn" @click="closeModal">Cancelar</button>
+            <button type="submit" class="create-route-btn">{{ modalType === 'edit' ? 'Salve' : 'Create' }}</button>
+            <button type="button" class="cancel-btn" @click="closeModal">Cancel</button>
           </div>
         </form>
       </div>
@@ -72,7 +72,7 @@
 
 <script>
 import routesService from "@/services/routesService";
-import pathService from "@/services/pathService"; // Serviço que recupera os paths
+import pathService from "@/services/pathService";
 
 export default {
   props: {
@@ -83,14 +83,14 @@ export default {
   },
   data() {
     return {
-      routes: [], // Rotas associadas ao lineId
-      paths: [], // Lista de todos os paths
-      loading: true, // Estado de carregamento
-      showModal: false, // Controle do modal
-      modalType: "", // Tipo do modal (create/edit)
+      routes: [],
+      paths: [],
+      loading: true,
+      showModal: false,
+      modalType: "", 
       modalRoute: {
         id: null,
-        lineId: this.lineId, // Define o lineId da rota
+        lineId: this.lineId,
         pathId: null,
         start_time: "",
         end_time: "",
@@ -99,14 +99,14 @@ export default {
     };
   },
   methods: {
-    // Busca as rotas associadas ao lineId
+
     async fetchRoutesByLineId() {
       try {
         const response = await routesService.getRoutesByLineId(this.lineId);
         this.routes = response.data.data || [];
-        await this.loadPathNames(); // Carrega os nomes dos paths
+        await this.loadPathNames(); // nomes dos paths
       } catch (error) {
-        console.error("Erro ao buscar rotas:", error);
+        console.error("Error getting routesd:", error);
       } finally {
         this.loading = false;
       }
@@ -114,13 +114,13 @@ export default {
     // Carrega a lista de paths
     async loadPaths() {
       try {
-        const response = await pathService.getPaths(); // Obter todos os paths
+        const response = await pathService.getPaths();
         this.paths = response.data || []; // Atribui a lista de paths à variável paths
       } catch (error) {
-        console.error("Erro ao buscar paths:", error);
+        console.error("Error getting paths:", error);
       }
     },
-    // Carrega o nome do path para cada rota
+    // nome do path para cada rota
     async loadPathNames() {
       for (let route of this.routes) {
         try {
@@ -128,11 +128,11 @@ export default {
           if (pathResponse && pathResponse.name) {
             route.pathName = pathResponse.name;
           } else {
-            route.pathName = "Nome não encontrado"; // Valor padrão se o nome não for encontrado
+            route.pathName = "Nome not found"; // se o nome não for encontrado
           }
         } catch (error) {
-          console.error("Erro ao buscar nome do path:", error);
-          route.pathName = "Erro ao carregar nome"; // Valor padrão em caso de erro
+          console.error("Error getting pathName", error);
+          route.pathName = "Error getting name"; // caso de erro
         }
       }
     },
@@ -144,11 +144,11 @@ export default {
       } else {
         this.modalRoute = {
           id: null,
-          lineId: this.lineId, // O lineId permanece fixo para a linha atual
+          lineId: this.lineId, // O lineId permanece sempre fixo para a rota 
           pathId: null,
           start_time: "",
           end_time: "",
-          status: "",
+          status: null,
         };
       }
       this.showModal = true;
@@ -170,18 +170,17 @@ export default {
           if (pathResponse && pathResponse.name) {
             newRoute.pathName = pathResponse.name;
           } else {
-            newRoute.pathName = "Nome não encontrado";
+            newRoute.pathName = "Name not found";
           }
-          if (newRoute && pathResponse && pathResponse.name) {
-            newRoute.status = pathResponse.name;
-          }
+          this.routes.push(newRoute)
+
           this.closeModal();
         }
       } catch (error) {
-        console.error("Erro ao criar rota:", error.response?.data || error);
+        console.error("Error creating route :", error.response?.data || error);
       }
     },
-    // Edita uma rota existente
+    // Edita uma rota
     async editRoute() {
       try {
         const routeData = { ...this.modalRoute };
@@ -204,32 +203,32 @@ export default {
           this.closeModal();
         }
       } catch (error) {
-        console.error("Erro ao editar rota:", error.response?.data || error);
+        console.error("Error editing route:", error.response?.data || error);
       }
     },
     // Elimina uma rota
     async deleteRoute(routeId) {
-      const confirmDelete = confirm("Tem certeza de que deseja eliminar esta rota?");
+      const confirmDelete = confirm("Are you sure that you want to delete this route ?");
       if (confirmDelete) {
         try {
           await routesService.deleteRoute(routeId);
           this.routes = this.routes.filter(route => route.id !== routeId);
         } catch (error) {
-          console.error("Erro ao eliminar rota:", error);
+          console.error("Error deleting route", error);
         }
       }
     },
   },
   mounted() {
-    this.fetchRoutesByLineId(); // Busca as rotas ao montar o componente
-    this.loadPaths(); // Carrega todos os paths
+    this.fetchRoutesByLineId(); 
+    this.loadPaths(); 
   },
 };
 </script>
 
 
 <style scoped>
-/* Estilos semelhantes ao de LinesPage */
+
 .container {
   padding: 20px;
 }

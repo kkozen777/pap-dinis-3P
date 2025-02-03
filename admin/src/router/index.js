@@ -10,10 +10,10 @@ import { nextTick } from 'vue';
 
 const routes = [
   { path: '/', component: Login },
-  { path: '/index', component: IndexPage, meta: { requiresAuth: true } }, // Tracking page
-  { path: '/drivers', component: DriversPage, meta: { requiresAuth: true } }, // Driver page
-  { path: '/lines', component: LinesPage, meta: { requiresAuth: true } }, // Tracking page
-  { path: '/paths', component: PathsPage, meta: { requiresAuth: true } }, // Tracking page
+  { path: '/index', component: IndexPage, meta: { requiresAuth: true } },
+  { path: '/drivers', component: DriversPage, meta: { requiresAuth: true } },
+  { path: '/lines', component: LinesPage, meta: { requiresAuth: true } },
+  { path: '/paths', component: PathsPage, meta: { requiresAuth: true } },
   { 
     path: '/routes/:lineId', 
     name: 'routes',
@@ -29,15 +29,14 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  await nextTick(); // Garante que o DOM está atualizado
+  await nextTick();
 
   const token = localStorage.getItem("authToken");
   // console.log("Token atual:", token);
 
   if (!token) {
-    // Se o token não existe e a rota requer autenticação, redireciona para login
     if (to.matched.some(record => record.meta.requiresAuth)) {
-      return next("/"); // Página de login
+      return next("/");
     }
   } else {
     try {
@@ -51,16 +50,16 @@ router.beforeEach(async (to, from, next) => {
 
       // Bloqueia acesso às rotas públicas para usuários autenticados
       if (!isTokenExpired && (to.path === "/")) {
-        return next("/index"); // Redireciona para a página protegida
+        return next("/index");
       }
     } catch (error) {
-      console.error("Erro ao verificar o token:", error);
+      console.error("Error ao verifying token:", error);
       authService.logout();
-      return next("/"); // Redireciona para login em caso de erro
+      return next("/"); 
     }
   }
 
-  next(); // Permite a navegação para outras rotas
+  next();
 });
 
 

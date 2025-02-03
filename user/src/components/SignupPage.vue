@@ -3,7 +3,10 @@
     <h2>Sign Up</h2>
     <form @submit.prevent="handleSignup">
       <div class="input-group">
-        <input v-model="email" type="text" placeholder="Email" required />
+        <input v-model="email" type="email" placeholder="Email" required />
+      </div>
+      <div class="input-group">
+        <input v-model="name" type="text" placeholder="Name" required />
       </div>
       <div class="input-group">
         <input v-model="password" type="password" placeholder="Password" required />
@@ -26,37 +29,38 @@ export default {
     return {
       email: '',
       password: '',
+      name:'',
       confirmPassword: '',
       error: null,
     };
   },
   methods: {
     async handleSignup() {
-  if (this.password !== this.confirmPassword) {
-    this.error = "Passwords do not match.";
-    return;
-  }
+      if (this.password !== this.confirmPassword) {
+        this.error = "Passwords do not match.";
+        return;
+      }
+      if (this.password.length < 6) {
+          this.error = "Password must be at least 6 characters long.";
+          return;
+        }
+      try {
+        const credentials = { email: this.email, name: this.name, password: this.password };
+        const response = await authService.signup(credentials);
 
-  try {
-    const credentials = { email: this.email, password: this.password, name: this.name };
-    const response = await authService.signup(credentials);
-
-    // verifica se a resposta contém a resposta esperada
-    if (response.data?.message === "User created successfully") {
-      this.$router.push("/"); // redireciona para a página de login apos o signup ser feito
-    } else {
-      throw new Error("Signup error.");
-    }
-  } catch (err) {
-    console.error("Signup error:", err);
-
-    if (err.response?.status === 400) {
-      this.error = "User already exists.";
-    } else {
-      this.error = err.response?.data?.error || "Error creating user.";
-    }
-  }
-},
+        if (response.message === "User created successfully") {
+          this.$router.push("/");
+        } else {
+          throw new Error("Signup error.");
+        }
+      } catch (err) {
+        if (err.message === "User already exists") {
+          this.error = "User already exists.";
+        } else {
+          this.error = err.message;
+        }
+      }
+    },
     goToLogin() {
       this.$router.push('/');
     }

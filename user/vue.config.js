@@ -1,40 +1,59 @@
-const { defineConfig } = require('@vue/cli-service')
+const { defineConfig } = require('@vue/cli-service');
 
 module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
-    // https: true, // Ativar HTTPS para o dev server do Vue
-
+    allowedHosts: "all",
     webSocketServer: false,
-      proxy: {
-        "/api": {
-          target: "https://localhost:3000",
-          secure: false, // Ignora erros de certificados autoassinados
+    proxy: {
+      "/api": {
+        target: "https://localhost:3000",
+        secure: false,
+        changeOrigin: true,
+        ws: true,
+      },
+      "/manifest.json": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        pathRewrite: { "^/manifest.json": "/manifest.json?ngrok-skip-browser-warning: true" },
+        headers: {
+          "ngrok-skip-browser-warning": "true",
         },
       },
     },
-})
-
-// const fs = require('fs');
-// const { defineConfig } = require('@vue/cli-service')
-
-// module.exports = defineConfig({
-//   transpileDependencies: true,
-//   devServer: {
-//     webSocketServer: false,
-//     server: {
-//       type: 'https',
-//       options: {
-//         key: fs.readFileSync('./cert/server.key'), // Caminho para os certificados no Vue
-//         cert: fs.readFileSync('./cert/server.cert'),
-//       },
-//     },
-//     proxy: {
-//       '/api': {
-//         target: 'https://localhost:443', // Backend Node.js
-//         secure: false, // Ignorar erros de certificado autoassinado
-//         changeOrigin: true,
-//       },
-//     },
-//   },
-// });
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "ngrok-skip-browser-warning": "true",
+    },
+    historyApiFallback: true,
+  },
+  publicPath: "/",
+  pwa: {
+    manifestPath: "/manifest.json"
+  },
+  pwa: {
+    name: "FastBus - User",
+    themeColor: "#4DBA87",
+    appleMobileWebAppCapable: "yes",
+    appleMobileWebAppStatusBarStyle: "black",
+    msTileColor: "#000000",
+    workboxPluginMode: "GenerateSW",
+    workboxOptions: {
+      runtimeCaching: [
+        {
+          urlPattern: new RegExp("^https://"),
+          handler: "NetworkFirst",
+          options: {
+            cacheName: "https-cache",
+            expiration: {
+              maxAgeSeconds: 60 * 60 * 24 * 30,
+            },
+            networkTimeoutSeconds: 10,
+          },
+        },
+      ],
+      skipWaiting: true,
+      clientsClaim: true,
+    },
+  },
+});

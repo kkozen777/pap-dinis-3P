@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://ca3e-2001-818-c5f6-ea00-d09d-62ca-e69e-c184.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
@@ -18,7 +18,7 @@ async function logout() {
     //fazer clear do cache
     localStorage.removeItem('authToken'); // Remove the token from localStorage
     return true;
-    // Optionally, you can redirect to login page here if needed
+
   } catch (error) {
     console.error("Error during logout:", error);
     throw new Error("Failed to log out. Please try again later.");
@@ -42,7 +42,7 @@ async function isAuthenticated() {
   }
 }
 
-// Extrai um valor específico do payload do token
+// Extrai um valor específico do token
 async function getTokenValue(key) {
   try {
     const token = localStorage.getItem('authToken');
@@ -52,10 +52,10 @@ async function getTokenValue(key) {
       },
       params: { key },
     });
-    return response.data.value; // Retorna o valor específico do payload
+    return response.data.value;
   } catch (error) {
-    console.error('Erro ao extrair valor do token:', error);
-    throw new Error('Falha ao extrair valor do token.');
+    console.error(' Error extracting tokens value', error);
+    throw new Error('failed extracting tokens value.');
   }
 }
 
@@ -67,15 +67,13 @@ async function isTokenExpired(token) {
         Authorization: `Bearer ${token}`,
       },
     });
-
-    // Assume que o backend retorna `false` se o token estiver válido
     return response.data.expired;
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      logout(); // Remove token inválido
-      return true; // Token expirado ou inválido
+      logout(); 
+      return true;
     }
-    throw new Error("Erro ao verificar expiração do token.");
+    throw new Error("Error verifying tokens expiration.");
   }
 }
 
@@ -88,38 +86,37 @@ async function decodeToken() {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data; // Retorna o payload decodificado
+    return response.data;
   } catch (error) {
-    console.error('Erro ao decodificar o token:', error);
-    throw new Error('Falha ao decodificar o token.');
+    console.error('Error decodifying token:', error);
+    throw new Error('Falied to decodify the token.');
   }
 }
 
 // Function to handle driver login
 async function login(body) {
   try {
-    const response = await apiClient.post('/auth/loginDriver', body); // Make API call
+    const response = await apiClient.post('/auth/loginDriver', body);
     return response.data; // Return the response data
   } catch (err) {
     console.error("Login error:", err);
-    // Check for specific error messages from the server
     throw new Error(err.response?.data?.message || "Login failed. Invalid credentials.");
   }
 }
 
 async function changePassword(currentPassword, newPassword) {
   try {
-    const token = localStorage.getItem('authToken'); // Obtenha o token de autenticação
+    const token = localStorage.getItem('authToken');
     const response = await apiClient.post(
-      '/auth/changeDriverPassword', // Endpoint da API
-      { currentPassword, newPassword }, // Corpo da requisição no formato correto
+      '/auth/changeDriverPassword',
+      { currentPassword, newPassword },
       {
         headers: {
-          Authorization: `Bearer ${token}`, // Adiciona o token no cabeçalho
+          Authorization: `Bearer ${token}`,
         },
       }
     );
-    return response.data; // Retorna a resposta da API (ex: mensagem de sucesso)
+    return response.data;
   } catch (error) {
     console.error("Error changing password:", error);
     throw new Error(error.response?.data?.message || "An error occurred");

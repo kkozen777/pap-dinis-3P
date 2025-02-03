@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://ca3e-2001-818-c5f6-ea00-d09d-62ca-e69e-c184.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
@@ -39,12 +39,11 @@ async function getTokenValue(key) {
     });
     return response.data.value; // Retorna o valor específico do payload
   } catch (error) {
-    console.error('Erro ao extrair valor do token:', error);
-    throw new Error('Falha ao extrair valor do token.');
+    console.error('Error extraicting value from token:', error);
+    throw new Error('Failed from extraicting tokens value.');
   }
 }
 
-// Verifica se o token está expirado
 // Verifica se o token está expirado
 async function isTokenExpired(token) {
   try {
@@ -61,7 +60,7 @@ async function isTokenExpired(token) {
       logout(); // Remove token inválido
       return true; // Token expirado ou inválido
     }
-    throw new Error("Erro ao verificar expiração do token.");
+    throw new Error("Error verifying the token.");
   }
 }
 
@@ -76,8 +75,8 @@ async function decodeToken() {
     });
     return response.data; // Retorna o payload decodificado
   } catch (error) {
-    console.error('Erro ao decodificar o token:', error);
-    throw new Error('Falha ao decodificar o token.');
+    console.error('Error decodifing the token.:', error);
+    throw new Error('Failed decodifing the token.');
   }
 }
 

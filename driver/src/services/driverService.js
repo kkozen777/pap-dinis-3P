@@ -1,7 +1,7 @@
 // driverService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://ca3e-2001-818-c5f6-ea00-d09d-62ca-e69e-c184.ngrok-free.app';  // Replace with your actual API URL
 
 // create an axios instance
 const apiClient = axios.create({
@@ -28,13 +28,13 @@ async function bindDriverToRoute(routeId) {
 
   try {
     // Verifica se o motorista já está associado a uma rota ativa
-    const response = await getDriverStatus(); // Aguardar a resposta do status do motorista
+    const response = await getDriverStatus(); 
     const driverStatus = response.data;
     // Se o motorista não tiver uma rota ativa, então associa a nova rota
     if (!driverStatus) {
       const body = {
         routeId,
-        status: 1, // status pode ser dinâmico, conforme sua necessidade
+        status: 1,
       };
 
       const bindResponse = await apiClient.post('/driverRoute/assign-route', body, {
@@ -43,7 +43,7 @@ async function bindDriverToRoute(routeId) {
         },
       });
 
-      return bindResponse.data; // Retorna o resultado
+      return bindResponse.data;
     } else {
       throw new Error('The driver is already associated with an active route.');
     }
@@ -72,7 +72,7 @@ async function endRoute() {
       },
     });
 
-    return response.data; // return the response data if necessary
+    return response.data;
   } catch (err) {
     console.error('Error ending route:', err);
     throw new Error('Error ending the route. Please try again.');
@@ -90,7 +90,7 @@ async function getDriverStatus() {
     const token = localStorage.getItem('authToken');
     const response = await apiClient.get('/driverRoute/driver/status', {
       headers: {
-        Authorization: `Bearer ${token}`, // sends the token in the header
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -98,7 +98,7 @@ async function getDriverStatus() {
       return false;
     }
 
-    return response; // return the data with associations
+    return response;
   } catch (err) {
     throw new Error('Error fetching associations');
   }
@@ -109,7 +109,7 @@ async function getDriverName() {
     const token = localStorage.getItem('authToken');
     const response = await apiClient.get('/drivers/getDriverName', {
       headers: {
-        Authorization: `Bearer ${token}`, // sends the token in the header
+        Authorization: `Bearer ${token}`,
       },
     });
     if (response == null) {

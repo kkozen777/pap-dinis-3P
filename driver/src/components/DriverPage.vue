@@ -11,7 +11,7 @@
     </div>
     
     <div class="content-wrapper">
-      <h1 class="title">Welcome {{ name }}</h1>
+      <h1 class="title">Hello {{ name }}</h1>
 
       <div class="status-messages">
         <div v-if="loadingLines" class="info">Loading lines...</div>
@@ -47,7 +47,7 @@
 
       <div v-if="selectedRoute">
         <button class="button" @click="bindDriverToRoute" :disabled="loading">
-          Bind to driver
+          Start !
         </button>
       </div>
     </div>
@@ -64,13 +64,12 @@ import driverService from '@/services/driverService';
 export default {
   data() {
     return {
-      menuOpen: false, // controle do menu de configurações
-      name: null, // name of the authenticated user
+      menuOpen: false,
+      name: null, // name of the authenticated driver
       lines: [], // list of available lines
       routes: [], // list of routes for the selected line
       selectedLine: "", // id of the selected line
       selectedRoute: "", // id of the selected route
-      selectedRouteDetails: {}, // details of the selected route (if needed)
       loadingLines: false, // loading state for lines
       loadingRoutes: false, // loading state for routes
       error: null, // general error message
@@ -83,10 +82,10 @@ export default {
       this.menuOpen = !this.menuOpen;
     },
     goToSettings() {
-      this.$router.push('/settings'); // Redireciona para a página de configurações
+      this.$router.push('/settings'); // redireciona para a página de settings
     },
     logout() {
-      // log out the user and redirect to the login page
+      // log out the driver and redirect to the login page
       try {
         authService.logout();
         this.$router.push('/');
@@ -153,10 +152,10 @@ export default {
         // call the service to bind the driver to the route
         await driverService.bindDriverToRoute(this.selectedRoute);
 
-        alert('Driver successfully bound to the route!');
+        alert('Successfully bound to the route!');
         this.$router.push('/tracking'); // redirect to the tracking page
       } catch (err) {
-        this.error = err.message || 'Error binding driver to the route.';
+        this.error = err.message || 'Error binding to the route.';
         console.error('Error:', err);
         alert(this.error);
       } finally {
@@ -173,14 +172,14 @@ export default {
   created() {
   driverService.getDriverName()
     .then((name) => {
-      this.name = name || "Driver"; // Fallback se o nome não estiver disponível
+      this.name = name || "Driver"; //  se o nome não estiver disponível
     })
     .catch((err) => {
       console.error("Failed to fetch driver name:", err);
-      this.name = "Driver"; // Fallback em caso de erro
+      this.name = "Driver"; // caso de erro
     });
 
-  this.fetchLines(); // Fetch lines ao inicializar o componente
+  this.fetchLines(); // Fetch lines ao inicializar
 }
 };
 </script>

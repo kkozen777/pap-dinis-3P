@@ -1,34 +1,33 @@
 <template>
   <div class="container">
-    <h1>Lista de Linhas</h1>
+    <h1>Lines list</h1>
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else>
       <table class="lines-table">
         <thead>
           <tr>
             <th>ID</th>
-            <th>Nome</th>
-            <th>Horários</th>
-            <th>Ações</th>
+            <th>Name</th>
+            <th>Schedules</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(line) in lines" :key="line.id">
             <td>{{ line.id }}</td>
             <td>{{ line.name }}</td>
-            <!-- Exibe 'Sem horários disponíveis' caso schedules seja null -->
-            <td>{{ line.schedules || 'Sem horários disponíveis' }}</td>
+            <td>{{ line.schedules || 'No avaliable schedules' }}</td>
             <td class="actions">
-              <button class="edit-btn" @click="openModal('edit', line)">Editar Linha</button>
-              <button class="edit-route-btn" @click="goToRoutes(line.id)">Editar Rotas</button>
-              <button class="delete-btn" @click="deleteLine(line.id)">Eliminar Linha</button>
+              <button class="edit-btn" @click="openModal('edit', line)">Edit Line</button>
+              <button class="edit-route-btn" @click="goToRoutes(line.id)">Edit Line's routes</button>
+              <button class="delete-btn" @click="deleteLine(line.id)">Delete Line</button>
             </td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <td colspan="4" style="text-align: center;">
-              <button class="add-btn" @click="openModal('create')">Adicionar Linha</button>
+              <button class="add-btn" @click="openModal('create')">Create Line</button>
             </td>
           </tr>
         </tfoot>
@@ -38,17 +37,17 @@
     <!-- Modal -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal-content">
-        <h2>{{ modalType === 'edit' ? 'Editar Linha' : 'Adicionar Linha' }}</h2>
+        <h2>{{ modalType === 'edit' ? 'Edit Line' : 'Create Line' }}</h2>
         <form @submit.prevent="modalType === 'create' ? createLine() : editLine()" class="line-form">
           <div class="form-group">
-            <label>Nome:</label>
+            <label>Name:</label>
             <input v-model="modalLine.name" type="text" required />
-            <label>Horários:</label>
+            <label>Schedules:</label>
             <input v-model="modalLine.schedules" type="text" />
           </div>
           <div class="modal-actions">
-            <button type="submit" class="save-btn">{{ modalType === 'edit' ? 'Salvar Alterações' : 'Criar Linha' }}</button>
-            <button type="button" class="cancel-btn" @click="closeModal">Cancelar</button>
+            <button type="submit" class="save-btn">{{ modalType === 'edit' ? 'Save' : 'Create Line' }}</button>
+            <button type="button" class="cancel-btn" @click="closeModal">Cancel</button>
           </div>
         </form>
       </div>
@@ -62,62 +61,57 @@ import linesService from "@/services/linesService";
 export default {
   data() {
     return {
-      lines: [], // Armazena as linhas retornadas pela API
-      loading: true, // Mostra o estado de carregamento
-      showModal: false, // Controla a exibição do modal
-      modalType: '', // Define se o modal é para criar ou editar
+      lines: [],
+      loading: true,
+      showModal: false, 
+      modalType: '', 
       modalLine: {
         id: null,
         name: '',
-        schedules: '', // Campo para os horários
+        schedules: '',
       },
     };
   },
   methods: {
-    // Busca as linhas da API
+    // pede a api as linhas existentes
     async fetchLines() {
       try {
         const response = await linesService.getLines();
-        console.log("Dados recebidos:", response.data); // Log para verificar a resposta
-        this.lines = response.data.lines || response.data; // Ajuste para o formato correto
+        this.lines = response.data;
       } catch (error) {
-        console.error("Erro ao buscar linhas:", error);
+        console.error("Error getting lines:", error);
       } finally {
         this.loading = false;
       }
     },
-    // Abre o modal
+    // abre o modal
     openModal(type, line = null) {
       this.modalType = type;
       if (type === 'edit' && line) {
         this.modalLine = { ...line };
       } else {
-        this.modalLine = { id: '', name: '', schedules: '' };
+        this.modalLine = { name: '', schedules: '' };
       }
       this.showModal = true;
     },
-    // Fecha o modal
+    // fecha o modal
     closeModal() {
       this.showModal = false;
     },
-    // Cria uma nova linha
+    // cria uma nova linha
     async createLine() {
       try {
         const lineData = { ...this.modalLine };
         delete lineData.id;
+
         const response = await linesService.createLine(lineData);
-        console.log('Linha criada:', response.data.line);
-        if (response.data && response.data.line && response.data.line.id) {
-          this.lines.push(response.data.line);
-        } else {
-          console.error('A linha criada não contém dados válidos:', response.data);
-        }
+        this.lines.push(response.data.line);
         this.closeModal();
       } catch (error) {
-        console.error('Erro ao criar linha:', error.response?.data || error);
+        console.error("Error creating driver: ", error.response?.data || error);
       }
     },
-    // Edita uma linha existente
+    // edita uma linha existente
     async editLine() {
       try {
         const lineData = { ...this.modalLine };
@@ -133,29 +127,27 @@ export default {
             line.id === this.modalLine.id ? response.data.updateLine : line
           );
         } else {
-          console.error("Dados do motorista atualizados estão ausentes:", response.data);
+          console.error("Error editing line:", response.data);
         }
         await this.fetchLines();
         this.closeModal();
       } catch (error) {
-        console.error("Erro ao editar linha:", error.response?.data || error);
+        console.error("Error editing:", error.response?.data || error);
       }
     },
-    // Elimina uma linha
+    // elimina uma linha
     async deleteLine(lineId) {
-      const confirmDelete = confirm("Tem certeza de que deseja eliminar esta linha?");
+      const confirmDelete = confirm("Are you sure that you want to delete this line?");
       if (confirmDelete) {
         try {
           await linesService.deleteLine(lineId);
           this.lines = this.lines.filter(line => line.id !== lineId);
         } catch (error) {
-          console.error("Erro ao eliminar linha:", error);
+          console.error("Error deleting line:", error);
         }
       }
     },
-    // Navega para as rotas
     goToRoutes(LineId) {
-      console.log("Navegando para rota com lineId:", LineId); // Log para depuração
       this.$router.push({ 
         name: 'routes', 
         params: { lineId: LineId } 
@@ -163,7 +155,7 @@ export default {
     }
   },
   mounted() {
-    this.fetchLines(); // Carrega as linhas ao montar o componente
+    this.fetchLines();
   },
 };
 </script>

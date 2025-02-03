@@ -1,23 +1,22 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://ca3e-2001-818-c5f6-ea00-d09d-62ca-e69e-c184.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
     headers: {
       'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning':true
+      'ngrok-skip-browser-warning':true,
     },
   });
   
 // Function to log the user out by removing the token
 async function logout() {
   try {
-    //fazer clear do cache
     localStorage.removeItem('authToken'); // Remove the token from localStorage
     return true;
-    // Optionally, you can redirect to login page here if needed
+
   } catch (error) {
     console.error("Error during logout:", error);
     throw new Error("Failed to log out. Please try again later.");
@@ -41,7 +40,7 @@ async function isAuthenticated() {
   }
 }
 
-// Extrai um valor específico do payload do token
+// Extrai um valor específico do token
 async function getTokenValue(key) {
   try {
     const token = localStorage.getItem('authToken');
@@ -51,10 +50,10 @@ async function getTokenValue(key) {
       },
       params: { key },
     });
-    return response.data.value; // Retorna o valor específico do payload
+    return response.data.value;
   } catch (error) {
-    console.error('Erro ao extrair valor do token:', error);
-    throw new Error('Falha ao extrair valor do token.');
+    console.error(' Error extracting tokens value', error);
+    throw new Error('failed extracting tokens value.');
   }
 }
 
@@ -66,15 +65,13 @@ async function isTokenExpired(token) {
         Authorization: `Bearer ${token}`,
       },
     });
-
-    // Assume que o backend retorna `false` se o token estiver válido
     return response.data.expired;
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      logout(); // Remove token inválido
-      return true; // Token expirado ou inválido
+      logout(); 
+      return true;
     }
-    throw new Error("Erro ao verificar expiração do token.");
+    throw new Error("Error verifying tokens expiration.");
   }
 }
 
@@ -87,10 +84,10 @@ async function decodeToken() {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data; // Retorna o payload decodificado
+    return response.data;
   } catch (error) {
-    console.error('Erro ao decodificar o token:', error);
-    throw new Error('Falha ao decodificar o token.');
+    console.error('Error decodifying token:', error);
+    throw new Error('Falied to decodify the token.');
   }
 }
 
@@ -98,11 +95,11 @@ async function decodeToken() {
 async function signup(body) {
   try {
     const response = await apiClient.post('/auth/signup', body); // Make API call
-    return response; // Return the data from the response
+    return response.data; // Return the data from the response
   } catch (err) {
-    console.error("Signup error:", err);
+    // console.error("Signup error:", err);
     // Check for specific error messages from the server
-    throw new Error(err.response?.data?.message || "Signup failed. Please try again.");
+    throw new Error(err.response?.data?.error || "Signup failed. Please try again.");
   }
 }
 
@@ -120,17 +117,17 @@ async function login(body) {
 
 async function changePassword(currentPassword, newPassword) {
   try {
-    const token = localStorage.getItem('authToken'); // Obtenha o token de autenticação
+    const token = localStorage.getItem('authToken');
     const response = await apiClient.post(
-      '/auth/changeUserPassword', // Endpoint da API
-      { currentPassword, newPassword }, // Corpo da requisição no formato correto
+      '/auth/changeUserPassword',
+      { currentPassword, newPassword },
       {
         headers: {
-          Authorization: `Bearer ${token}`, // Adiciona o token no cabeçalho
+          Authorization: `Bearer ${token}`,
         },
       }
     );
-    return response.data; // Retorna a resposta da API (ex: mensagem de sucesso)
+    return response.data;
   } catch (error) {
     console.error("Error changing password:", error);
     throw new Error(error.response?.data?.message || "An error occurred");
@@ -142,23 +139,23 @@ async function changeEmail(newEmail) {
   try {
     const token = localStorage.getItem('authToken');
     const response = await apiClient.post('/auth/changeEmail', 
-      { email: newEmail },  // Aqui estamos garantindo que o corpo da requisição é um objeto JSON
+      { email: newEmail },  // garantir que o corpo é um JSON
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json" // Garante que o backend interprete como JSON
+          "Content-Type": "application/json" 
         }
       }
     );
     
-    return response.data; // Retorna a resposta da API (ex: mensagem de sucesso)
+    return response.data; 
   } catch (error) {
     console.error("Error changing email:", error);
     throw new Error(error.response?.data?.message || "An error occurred");
   }
 }
 
-// Método para excluir a conta
+// para apagar a conta
 async function deleteAccount() {
   try {
     const token = localStorage.getItem('authToken');

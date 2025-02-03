@@ -6,23 +6,23 @@
         <table class="paths-table">
           <thead>
             <tr>
-              <th>Nome</th>
-              <th>Ações</th>
+              <th>Name</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(path, index) in paths" :key="index">
               <td>{{ path.name }}</td>
               <td class="actions">
-                <button class="edit-btn" @click="openModal('edit', path)">Editar</button>
-                <button class="delete-btn" @click="deletePath(index)">Apagar</button>
+                <button class="edit-btn" @click="openModal('edit', path)">Edit</button>
+                <button class="delete-btn" @click="deletePath(index)">Delete</button>
               </td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
               <td colspan="2" style="text-align: center;">
-                <button class="add-btn" @click="openModal('create')">Adicionar Path</button>
+                <button class="add-btn" @click="openModal('create')">Create Path</button>
               </td>
             </tr>
           </tfoot>
@@ -32,14 +32,14 @@
       <!-- Modal para Adicionar/Editar Path -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
-          <h2>{{ modalType === 'edit' ? 'Editar Path' : 'Adicionar Path' }}</h2>
+          <h2>{{ modalType === 'edit' ? 'Edit Path' : 'Create Path' }}</h2>
           <div class="form-group">
-      <label for="path-name">Nome do Path:</label>
+      <label for="path-name">Path's name:</label>
       <input
         id="path-name"
         type="text"
         v-model="modalPath.name"
-        placeholder="Insira o nome do path"
+        placeholder="Insert the path"
         required
       />
     </div>
@@ -49,14 +49,14 @@
           <ul class="coordinates-list" style="max-height: 300px; overflow-y: auto;">
             <li v-for="(coord, index) in modalPath.coordinates" :key="index">
                 {{ coord.latitude }}, {{ coord.longitude }} - {{ coord.StopName }}
-                <button class="remove-btn" @click="removeCoordinate(index)">Remover</button>
+                <button class="remove-btn" @click="removeCoordinate(index)">Remove</button>
             </li>
         </ul>
 
   
           <div class="modal-actions">
-            <button @click="savePath" class="save-btn">Salvar Path</button>
-            <button @click="closeModal" class="cancel-btn">Cancelar</button>
+            <button @click="savePath" class="save-btn">Save Path</button>
+            <button @click="closeModal" class="cancel-btn">Cancel</button>
           </div>
         </div>
       </div>
@@ -88,21 +88,19 @@
         async fetchPaths() {
             try {
                 const response = await pathsService.getPaths();
-                console.log("Resposta da API:", response.data); // Verifique o que está sendo retornado
 
                 if (!response.data) {
-                throw new Error("Resposta inválida do servidor");
+                throw new Error("Invalid awnser");
                 }
 
-                // Ajustar para lidar com o campo 'coordinates' como uma string JSON
+                // para colocar as coordenadas como um JSON
                 this.paths = response.data.map(path => ({
                 ...path,
-                // Verifica se as coordenadas são uma string e faz o parse
                 coordinates: path.coordinates ? JSON.parse(path.coordinates) : []
                 }));
 
             } catch (error) {
-                console.error("Erro ao buscar paths:", error);
+                console.error("Error getting paths:", error);
             } finally {
                 this.loading = false;
             }
@@ -120,7 +118,7 @@
         closeModal() {
             this.showModal = false;
 
-            // Remove as camadas de marcadores e rota
+            // faz um reset ao mapa, pq so da para ter um mapa de cada vez entao, ao fechar apaga o mapa
             if (this.markerLayer) {
                 this.markerLayer.clearLayers();
                 this.map.removeLayer(this.markerLayer);
@@ -132,7 +130,6 @@
                 this.routeLayer = null;
             }
 
-            // Remove eventos e destrói o mapa
             if (this.map) {
                 this.map.off();
                 this.map.remove();
@@ -141,89 +138,87 @@
         },
 
         initMap() { 
-    this.$nextTick(() => {
-        // Inicializa o mapa
-        this.map = L.map("map").setView([41.3380766, -8.478313], 14);
+          this.$nextTick(() => {
+              // inicializa o mapa
+              this.map = L.map("map").setView([41.3380766, -8.478313], 14);
+              L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.map);
 
-        // Adiciona a camada de tiles (mapa de fundo)
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.map);
+              // cria as camadas de marcadores e rota
+              this.markerLayer = L.layerGroup().addTo(this.map);
+              this.routeLayer = L.layerGroup().addTo(this.map); 
 
-        // Cria as camadas de marcadores e rota
-        this.markerLayer = L.layerGroup().addTo(this.map);
-        this.routeLayer = L.layerGroup().addTo(this.map); 
+              // cria um icon 
+              const busStopIcon = L.icon({
+                  iconUrl: busStopPng,
+                  iconSize: [32, 32],
+                  iconAnchor: [16, 32],
+                  popupAnchor: [0, -32]
+              });
 
-        // Adiciona os marcadores, mas sem a exibição de latitude e longitude
-        const busStopIcon = L.icon({
-            iconUrl: busStopPng,
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -32]
-        });
+              // caso o mapa ja tenha coordenadas ao ser aberto vao ser colocadas la
+              if (this.modalPath.coordinates.length) {
+                  const coordinates = this.modalPath.coordinates.map(coord => [coord.latitude, coord.longitude]);
+                  coordinates.forEach(coord => {
+                      const marker = L.marker(coord, { icon: busStopIcon }).addTo(this.markerLayer);
+                      // exibe apenas o StopName no popup
+                      const stopName = this.modalPath.coordinates.find(c => c.latitude === coord[0] && c.longitude === coord[1]).StopName;
+                      marker.bindPopup(`${stopName}`);
+                  });
 
-        // Se houver coordenadas, adiciona os marcadores no mapa com o nome do ponto
-        if (this.modalPath.coordinates.length) {
-            const coordinates = this.modalPath.coordinates.map(coord => [coord.latitude, coord.longitude]);
-            coordinates.forEach(coord => {
-                const marker = L.marker(coord, { icon: busStopIcon }).addTo(this.markerLayer);
-                // Exibe apenas o StopName no popup
-                const stopName = this.modalPath.coordinates.find(c => c.latitude === coord[0] && c.longitude === coord[1]).StopName;
-                marker.bindPopup(`${stopName}`);
-            });
+                  // ajusta os limites do mapa para mostrar todos os pontos
+                  const bounds = L.latLngBounds(coordinates);
+                  this.map.fitBounds(bounds);
+              }
 
-            // Ajusta os limites do mapa para mostrar todos os pontos
-            const bounds = L.latLngBounds(coordinates);
-            this.map.fitBounds(bounds);
-        }
+              // adiciona os eventos para conseguir dar zoom e clicar
+              this.map.on('zoomend', () => {
+                  if (this.markerLayer) {
+                      this.markerLayer.eachLayer(marker => marker.update());
+                  }
+              });
 
-        // Adiciona eventos de zoom e clique
-        this.map.on('zoomend', () => {
-            if (this.markerLayer) {
-                this.markerLayer.eachLayer(marker => marker.update());
-            }
-        });
-
-        // Configura o evento de clique no mapa para adicionar coordenadas
-        this.map.on("click", this.handleMapClick);
-        
-        // Desenha a rota, caso existam pontos
-        this.drawRoute(); 
-    });
-},
+              // aqui chama a funcao que faz para que o evento de clique no mapa seja para colocar novas coordenadas
+              this.map.on("click", this.handleMapClick);
+              
+              // desenha a rota, caso existam pontos
+              this.drawRoute(); 
+          });
+        },
 
         handleMapClick(e) {
-            const latitude = e.latlng.lat;
-            const longitude = e.latlng.lng;
-            const stopName = prompt("Nome do ponto:");
+          const latitude = e.latlng.lat;
+          const longitude = e.latlng.lng;
+          const stopName = prompt("Stop name: ");
 
-            if (!stopName) return;
+          if (!stopName) return;
 
-            const newPoint = { latitude, longitude, StopName: stopName };
-            this.modalPath.coordinates.push(newPoint);
+          const newPoint = { latitude, longitude, StopName: stopName };
+          this.modalPath.coordinates.push(newPoint);
 
-            // Garante que a camada existe antes de adicionar o marcador
-            if (!this.markerLayer) {
-                this.markerLayer = L.layerGroup().addTo(this.map);
-            }
+          // garante que a camada existe antes de adicionar o marcador, correção de erro
+          if (!this.markerLayer) {
+              this.markerLayer = L.layerGroup().addTo(this.map);
+          }
 
-            // Criando o ícone do ponto de ônibus
-            const busStopIcon = L.icon({
-                iconUrl: busStopPng,
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
-            });
+          // cria o icon
+          const busStopIcon = L.icon({
+              iconUrl: busStopPng,
+              iconSize: [32, 32],
+              iconAnchor: [16, 32],
+              popupAnchor: [0, -32]
+          });
 
-            // Adicione os marcadores ao markerLayer em vez de diretamente ao mapa
-            const marker = L.marker([latitude, longitude], { icon: busStopIcon });
-            this.markerLayer.addLayer(marker); // Use a camada em vez do mapa
-            
-            // Exibe apenas o nome do ponto de parada no popup
-            marker.bindPopup(`${stopName}`);
+          // adiciona  os marcadores ao markerLayer em vez de diretamente ao mapa, correcao de erros
+          const marker = L.marker([latitude, longitude], { icon: busStopIcon });
+          this.markerLayer.addLayer(marker); // use a camada em vez do mapa
+          
+          // exibe apenas o nome da paragem no popup
+          marker.bindPopup(`${stopName}`);
 
-            // Mantém referência do marcador na camada para evitar perda ao dar zoom
-            this.map.addLayer(this.markerLayer);
+          // mentem o marcador na camada par nao haver bugs ao dar zoom
+          this.map.addLayer(this.markerLayer);
 
-            this.drawRoute();
+          this.drawRoute();
         },
 
         drawRoute() {
@@ -250,7 +245,7 @@
                         }).addTo(this.routeLayer);
                     }
                 })
-                .catch(error => console.error("Erro ao obter a rota:", error));
+                .catch(error => console.error("Error getting route:", error));
         },
 
         removeCoordinate(index) {
@@ -258,23 +253,23 @@
 
             if (!this.markerLayer) return;
 
-            // Remove apenas o marcador específico, sem limpar tudo
+            //caso user queira remover uma paragem
             this.markerLayer.eachLayer(layer => {
                 if (layer.getLatLng().lat === removedPoint.latitude && layer.getLatLng().lng === removedPoint.longitude) {
                     this.markerLayer.removeLayer(layer);
                 }
             });
-
+            //desenha a rota mas sem a paragem removida
             this.drawRoute();
         },
 
       async deletePath(index) {
-        if (confirm("Tem certeza de que deseja apagar este path?")) {
+        if (confirm("Are you sure that you want to remove this path?")) {
           try {
             await pathsService.deletePath(this.paths[index].id);
             this.paths.splice(index, 1);
           } catch (error) {
-            console.error("Erro ao apagar path:", error);
+            console.error("Error deleting path:", error);
           }
         }
       },
@@ -287,22 +282,16 @@
             }
 
             if (this.modalType === "create") {
-            console.log(this.modalPath)
-            const response = await pathsService.createPath(this.modalPath);
-            console.log(response)
-            this.paths.push(response.data.path);
-            // this.paths.push({
-            //     ...response.data,
-            //     coordinates: JSON.parse(response.data.coordinates || '[]'),
-            // });
+              const response = await pathsService.createPath(this.modalPath);
+              this.paths.push(response.data.path);
             } else {
-            await pathsService.updatePath(this.modalPath.id, this.modalPath);
-            await this.fetchPaths();
+              await pathsService.updatePath(this.modalPath.id, this.modalPath);
+              await this.fetchPaths();
             }
 
             this.closeModal();
         } catch (error) {
-            console.error("Erro ao salvar path:", error);
+            console.error("Error saving path:", error);
         }
         },
     },

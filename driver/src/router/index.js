@@ -20,19 +20,19 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => { 
-  await nextTick(); // Garante que o DOM está atualizado
+  await nextTick();
 
-  // Obtém o token de autenticação
+  // Obtém o token
   const token = localStorage.getItem("authToken");
   // console.log("Token atual:", token);
 
   // Se o token não existe
   if (!token) {
-    // Bloqueia rotas protegidas e redireciona para login
+    // Bloqueia as paginas protegidas e redireciona para login
     if (to.matched.some(record => record.meta.requiresAuth)) {
       return next("/"); // Página de login
     }
-    // Permite a navegação para rotas públicas
+    // avanca caso ja exista token no browser
     return next();
   }
 
@@ -47,23 +47,24 @@ router.beforeEach(async (to, from, next) => {
 
     // Verifica o estado do motorista
     const response = await driverService.getDriverStatus();
+    // variavel para saber se esta em uma rota ativa
     const hasActiveRoute = response.data;
-    // Lógica de redirecionamento baseada no estado
+    // se esta numa rota ativa e nao esta na pagina de tracking, redireciona-o para lá
     if (hasActiveRoute && to.path === "/driver") {
-      return next("/tracking"); // Redireciona para o tracking
+      return next("/tracking");
     }
 
     if (!hasActiveRoute && to.path === "/tracking") {
-      return next("/driver"); // Redireciona para a área de motorista
+      return next("/driver"); // Redireciona para a pagina driver caso nao esteja a fazer uma rota
     }
 
     if (token && to.path === "/") {
-      return next("/driver"); // Redireciona para a área de motorista
+      return next("/driver"); // redireciona para a área de motorista caso tenha token e esteja no sitio de login
     }
 
   } catch (error) {
-    console.error("Erro ao verificar o token ou estado do motorista:", error);
-    authService.logout(); // Garante que o token inválido seja removido
+    console.error("Error verifying token or the driver status", error);
+    authService.logout();
     return next("/"); // Redireciona para login em caso de erro
   }
 

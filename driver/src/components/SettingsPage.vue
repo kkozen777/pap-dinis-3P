@@ -1,15 +1,11 @@
 <template>
     <div class="settings-container">
-      <!-- Botão de voltar -->
       <button class="back-button" @click="goBack">⬅</button>
   
-      <!-- Título principal -->
       <h1>Settings</h1>
   
-      <!-- Subtítulo -->
       <h3>Change Password</h3>
   
-      <!-- Alterar Senha -->
       <div class="section">
         <input
           v-model="currentPassword"
@@ -20,7 +16,6 @@
         <button @click="changePassword">Change Password</button>
       </div>
   
-      <!-- Mensagem de Erro ou Sucesso -->
       <div v-if="message" :class="messageType" class="message">{{ message }}</div>
     </div>
   </template>
@@ -34,7 +29,7 @@
         currentPassword: "",
         newPassword: "",
         message: "",
-        messageType: "", // Pode ser "error" ou "success"
+        messageType: "", // error" or "success"
       };
     },
     methods: {

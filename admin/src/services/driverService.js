@@ -1,7 +1,7 @@
 // src/services/apiService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://d88c-87-196-81-40.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://ca3e-2001-818-c5f6-ea00-d09d-62ca-e69e-c184.ngrok-free.app';  // Replace with your actual API URL
 
 // Create an axios instance
 const apiClient = axios.create({
@@ -17,13 +17,13 @@ const apiClient = axios.create({
  * Fetch all routes from the /routes/ endpoint.
  * @returns {Promise} - Promise with the response data (list of routes)
  */
-// No seu service API
-function createDriver(driverData) {
-    return apiClient.post('/admin/createDriver', driverData); // Usando POST para criar um novo motorista
+
+function createDriver(driverData) { 
+    return apiClient.post('/admin/createDriver', driverData);
 }
 
 function updateDriver(driverId, driverData) {
-    return apiClient.patch(`/admin/updateDriver/${driverId}`, driverData); // Enviar os dados do motorista
+    return apiClient.patch(`/admin/updateDriver/${driverId}`, driverData)
 }
 
 function deleteDriver(driverId) {

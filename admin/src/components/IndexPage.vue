@@ -2,7 +2,7 @@
   <div class="button-container">
     <button @click="logout">Logout</button>
     <button @click="goToDriversPage">Drivers</button>
-    <button @click="goToLinesAndRoutesPage">Rotas e Linhas</button>
+    <button @click="goToLinesAndRoutesPage">Routes and Lines</button>
     <button @click="goToPathsPage">Paths</button>
   </div>
 </template>

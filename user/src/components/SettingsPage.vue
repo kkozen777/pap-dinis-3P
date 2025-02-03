@@ -50,6 +50,11 @@
         this.$router.push('/index');
     },
       async changePassword() {
+      if (this.newPassword.length < 6) {
+          this.message = "Password must be at least 6 characters long.";
+          this.messageType = "error";
+          return;
+        }
         try {
           const result = await authService.changePassword(this.currentPassword, this.newPassword);
           this.message = result.message;

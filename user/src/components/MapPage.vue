@@ -60,7 +60,7 @@ export default {
       this.updateInterval = setInterval(async () => {
         await this.fetchLatestLocation();
         await this.getUserLocation();
-      }, 1000); // Atualiza a localização a cada 1 segundo
+      }, 3000); // Atualiza a localização a cada 1 segundo
     } catch (error) {
       console.error("Error mounting:", error);
     }
