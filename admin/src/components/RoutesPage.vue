@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Rotas para a Linha {{ lineId }}</h1>
+    <h1>Line {{ lineId }} routes</h1>
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else>
       <table class="routes-table">
@@ -54,7 +54,7 @@
             <label>Ends at:</label>
             <input v-model="modalRoute.end_time" type="text" />
             
-            <!-- Campo status apenas no modo de edição -->
+            <!-- status apenas no modo de edição -->
             <div v-if="modalType === 'edit'">
               <label>Status:</label>
               <input v-model="modalRoute.status" type="text" />

@@ -1,0 +1,10 @@
+REQUESITOS QUE TEM DE ESTAR INSTALADOS: nodeJS, git, VUE CLI
+
+abrir cmd e executar o comando npm install -g @vue/cli
+
+criar pasta para pap(ou criar uma, recomendo colocar o frontend e backend na mesma pasta por organização)
+executar este comando: git clone https://github.com/kkozen777/pap-dinis-3P.git
+entrar no diretório criado: cd pap-dinis-3P
+abrir 3 terminais, um para cada pasta que foi criada, user, admin, driver
+executar o comando npm install para cada pasta para instalar todos os pacotes do projeto
+executar o comando "npm run serve" para cada um

@@ -1,5 +1,14 @@
 <template>
   <div class="login-container">
+    <div class="install-container" v-if="deferredPrompt">
+        <img 
+      src="@/assets/downloadbutton.png" 
+      alt="Install PWA" 
+      class="install-button" 
+      @click="installPWA" 
+    />
+      <span class="install-label">(Android only)</span>
+    </div>
     <h2>Driver Login</h2>
     <h2 v-if="isLoggedIn">Welcome!</h2>
     <form @submit.prevent="handleLogin">
@@ -37,7 +46,15 @@ export default {
       password: '',
       error: null,
       isLoggedIn: null,
+      deferredPrompt: null,
+
     };
+  },
+  created() {
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      this.deferredPrompt = event;
+    });
   },
   methods: {
     async handleLogin() {
@@ -65,6 +82,23 @@ export default {
         this.error = err.response?.data?.message || err.message || 'Login error.';
       }
     },
+    async installPWA() {
+      if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+          window.location.href = '/';
+        } else if (this.deferredPrompt) {
+          this.deferredPrompt.prompt();
+          this.deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+            } else {
+              console.log('User dismissed the install prompt');
+            }
+            this.deferredPrompt = null;
+          });
+        } else {
+          alert('Not supported by the browser.');
+        }
+      },
   },
 };
 </script>
@@ -78,13 +112,35 @@ body {
 }
 
 .login-container {
+  position: relative; /* Necessário para que elementos posicionados absolutamente fiquem relativos a ele */
   max-width: 400px;
   margin: 100px auto;
   padding: 20px;
   background-color: #1e1e1e; /* Fundo do container */
   border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   text-align: center;
+}
+
+/* Container para o botão de instalar, posicionado no canto superior esquerdo do .login-container */
+.install-container {
+  position: absolute;
+  top: 10px;
+  left: 10px; /* Posicionado no canto superior esquerdo do container */
+  display: flex;
+  flex-direction: column; /* Alinha os elementos verticalmente */
+  align-items: center;
+}
+
+.install-button {
+  width: 50px; /* Tamanho do botão */
+  cursor: pointer;
+}
+
+.install-label {
+  margin-top: 5px; /* Espaço acima da label */
+  font-size: 12px;
+  color: gray;
 }
 
 h2 {

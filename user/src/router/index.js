@@ -8,16 +8,16 @@ import authService from '@/services/authService.js';
 import { nextTick } from 'vue';
 
 const routes = [
-  { path: '/', component: LoginPage }, // Login page
-  { path: '/signup', component: SignupPage }, // Signup page
-  { path: '/index', component: IndexPage, meta: { requiresAuth: true } }, // Protected page
-  { path: '/settings', component: SettingsPage, meta: { requiresAuth: true } }, // Protected page
+  { path: '/', component: LoginPage }, // pagina Login 
+  { path: '/signup', component: SignupPage }, // pagina Signup 
+  { path: '/index', component: IndexPage, meta: { requiresAuth: true } }, // pagina protegida 
+  { path: '/settings', component: SettingsPage, meta: { requiresAuth: true } }, // pagina protegida 
   {
-    path: '/map/:routeId', // route with a dynamic parameter
+    path: '/map/:routeId', // pagina com um parametro dinamico
     name: 'MapPage',
     component: MapPage,
-    props: true, // route parameters as props
-    meta: { requiresAuth: true }, // is a protected page
+    props: true, // parametros como  props
+    meta: { requiresAuth: true }, // pagina protegida 
   },
 ];
 

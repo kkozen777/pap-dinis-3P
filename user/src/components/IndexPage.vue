@@ -68,9 +68,6 @@
         {{ route.start_time }}
       </option>
     </select>
-
-
-
       <!-- Selected Route Details -->
       <section v-if="selectedRoute">
         <h3>Selected Route Details</h3>

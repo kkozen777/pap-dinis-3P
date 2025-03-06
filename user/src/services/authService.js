@@ -103,15 +103,15 @@ async function signup(body) {
   }
 }
 
-// Function to handle user login
+// Função para fazer login do user
 async function login(body) {
   try {
-    const response = await apiClient.post('/auth/loginUser', body); // Make API call
-    return response.data; // Return the response data
+    const response = await apiClient.post('/auth/loginUser', body); // Envia os dados para a route da api
+    return response.data; // faz um retorno do valor data dentro da resposta da api
   } catch (err) {
     console.error("Login error:", err);
-    // Check for specific error messages from the server
-    throw new Error(err.response?.data?.message || body.password + "Login #2 failed. Invalid credentials.");
+    // procura a mensagem de erro, se ela existir retorna-a, caso não exista envia o outro erro
+    throw new Error(err.response?.data?.message || "Login failed. Invalid credentials.");
   }
 }
 

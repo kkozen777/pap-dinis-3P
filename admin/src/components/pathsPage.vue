@@ -1,67 +1,73 @@
 <template>
-    <div class="container">
-      <h1>Gestão de Paths</h1>
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else>
-        <table class="paths-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(path, index) in paths" :key="index">
-              <td>{{ path.name }}</td>
-              <td class="actions">
-                <button class="edit-btn" @click="openModal('edit', path)">Edit</button>
-                <button class="delete-btn" @click="deletePath(index)">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="2" style="text-align: center;">
-                <button class="add-btn" @click="openModal('create')">Create Path</button>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-  
-      <!-- Modal para Adicionar/Editar Path -->
-      <div v-if="showModal" class="modal-overlay">
-        <div class="modal-content">
-          <h2>{{ modalType === 'edit' ? 'Edit Path' : 'Create Path' }}</h2>
-          <div class="form-group">
-      <label for="path-name">Path's name:</label>
-      <input
-        id="path-name"
-        type="text"
-        v-model="modalPath.name"
-        placeholder="Insert the path"
-        required
-      />
+  <div class="container">
+    <h1>Paths List</h1>
+    <!-- Mostra a mensagem de loading enquanto os dados estão a ser carregados -->
+    <div v-if="loading" class="loading">Loading...</div>
+    <div v-else>
+      <table class="paths-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ve a lista de paths e cria uma linha para cada um -->
+          <tr v-for="(path, index) in paths" :key="index">
+            <td>{{ path.name }}</td>
+            <td class="actions">
+              <!-- Botão para editar um path -->
+              <button class="edit-btn" @click="openModal('edit', path)">Edit</button>
+              <!-- Botão para apagar um path -->
+              <button class="delete-btn" @click="deletePath(index)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="text-align: center;">
+              <!-- Botão para criar um novo path -->
+              <button class="add-btn" @click="openModal('create')">Create Path</button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
-          <div id="map" class="map-container"></div>
-  
-          <!-- Lista de coordenadas adicionadas -->
-          <ul class="coordinates-list" style="max-height: 300px; overflow-y: auto;">
-            <li v-for="(coord, index) in modalPath.coordinates" :key="index">
-                {{ coord.latitude }}, {{ coord.longitude }} - {{ coord.StopName }}
-                <button class="remove-btn" @click="removeCoordinate(index)">Remove</button>
-            </li>
-        </ul>
 
-  
-          <div class="modal-actions">
-            <button @click="savePath" class="save-btn">Save Path</button>
-            <button @click="closeModal" class="cancel-btn">Cancel</button>
-          </div>
+    <!-- Modal para criar ou editar um path -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>{{ modalType === 'edit' ? 'Edit Path' : 'Create Path' }}</h2>
+        <div class="form-group">
+    <label for="path-name">Path's name:</label>
+    <input
+      id="path-name"
+      type="text"
+      v-model="modalPath.name"
+      placeholder="Insert the path"
+      required
+    />
+  </div>
+        <!-- Div onde o mapa será carregado -->
+        <div id="map" class="map-container"></div>
+
+        <!-- Lista de coordenadas associadas ao path -->
+        <ul class="coordinates-list" style="max-height: 300px; overflow-y: auto;">
+          <li v-for="(coord, index) in modalPath.coordinates" :key="index">
+              {{ coord.latitude }}, {{ coord.longitude }} - {{ coord.StopName }}
+              <button class="remove-btn" @click="removeCoordinate(index)">Remove</button>
+          </li>
+      </ul>
+
+        <!-- Ações do modal -->
+        <div class="modal-actions">
+          <button @click="savePath" class="save-btn">Save Path</button>
+          <button @click="closeModal" class="cancel-btn">Cancel</button>
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</template>
   
   <script>
   import L from "leaflet";
@@ -71,22 +77,23 @@
   export default {
     data() {
       return {
-        paths: [],
-        loading: true,
-        showModal: false,
-        modalType: '',
+        paths: [], // Lista de paths
+        loading: true, // Estado de carregamento
+        showModal: false, // Controla a exibição do modal
+        modalType: '', // Tipo do modal (create/edit) //
         modalPath: {
           name: '',
           coordinates: [],
         },
-        map: null,
-        markerLayer: null,
-        routeLayer: null,
+        map: null, // Instância do mapa Leaflet
+        markerLayer: null, // Camada de marcadores no mapa
+        routeLayer: null, // Camada da rota no mapa
       };
     },
     methods: {
         async fetchPaths() {
             try {
+              //guarda todos os caminhos
                 const response = await pathsService.getPaths();
 
                 if (!response.data) {
@@ -112,13 +119,13 @@
             this.showModal = true;
             this.$nextTick(() => {
                 this.initMap();
-                this.drawRoute(); // Desenha a rota ao abrir o modal para edição
+                this.drawRoute(); // Desenha a rota ao abrir o modal para edição, porque já existem coordenadas daquele path
             });
         },
         closeModal() {
             this.showModal = false;
 
-            // faz um reset ao mapa, pq so da para ter um mapa de cada vez entao, ao fechar apaga o mapa
+            // faz um reset ao mapa, porque so da para ter um mapa de cada vez por component entao, ao fechar apaga o mapa
             if (this.markerLayer) {
                 this.markerLayer.clearLayers();
                 this.map.removeLayer(this.markerLayer);
@@ -154,7 +161,6 @@
                   iconAnchor: [16, 32],
                   popupAnchor: [0, -32]
               });
-
               // caso o mapa ja tenha coordenadas ao ser aberto vao ser colocadas la
               if (this.modalPath.coordinates.length) {
                   const coordinates = this.modalPath.coordinates.map(coord => [coord.latitude, coord.longitude]);
@@ -164,19 +170,16 @@
                       const stopName = this.modalPath.coordinates.find(c => c.latitude === coord[0] && c.longitude === coord[1]).StopName;
                       marker.bindPopup(`${stopName}`);
                   });
-
                   // ajusta os limites do mapa para mostrar todos os pontos
                   const bounds = L.latLngBounds(coordinates);
                   this.map.fitBounds(bounds);
               }
-
               // adiciona os eventos para conseguir dar zoom e clicar
               this.map.on('zoomend', () => {
                   if (this.markerLayer) {
                       this.markerLayer.eachLayer(marker => marker.update());
                   }
               });
-
               // aqui chama a funcao que faz para que o evento de clique no mapa seja para colocar novas coordenadas
               this.map.on("click", this.handleMapClick);
               
@@ -188,7 +191,7 @@
         handleMapClick(e) {
           const latitude = e.latlng.lat;
           const longitude = e.latlng.lng;
-          const stopName = prompt("Stop name: ");
+          const stopName = prompt("Stop name: "); // mensagem que aparece no pop up ao clicar em uma paragem
 
           if (!stopName) return;
 
@@ -222,6 +225,7 @@
         },
 
         drawRoute() {
+            // Só desenha a rota se houver pelo menos dois pontos
             if (this.modalPath.coordinates.length < 2) return;
 
             if (!this.routeLayer) {
@@ -230,10 +234,11 @@
                 this.routeLayer.clearLayers();
             }
 
+            // Converte as coordenadas para o formato necessário
             const routeCoordinates = this.modalPath.coordinates.map(coord => `${coord.longitude},${coord.latitude}`);
 
+            // URL da API externa do OSRM para calcular o trajeto entre os pontos
             const routeUrl = `https://router.project-osrm.org/route/v1/driving/${routeCoordinates.join(';')}?overview=full&geometries=geojson`;
-
             fetch(routeUrl)
                 .then(response => response.json())
                 .then(data => {
@@ -264,8 +269,10 @@
         },
 
       async deletePath(index) {
+        //caso o utilizador confirme o aviso enviado
         if (confirm("Are you sure that you want to remove this path?")) {
           try {
+            //chama o service e envia o id do path selecionado no index
             await pathsService.deletePath(this.paths[index].id);
             this.paths.splice(index, 1);
           } catch (error) {
@@ -276,25 +283,29 @@
       
       async savePath() {
         try {
+            // Verifica se o nome do caminho foi preenchido
             if (!this.modalPath.name.trim()) {
-            alert("Put the Path Name");
-            return;
+              alert("Put the Path Name");
+              return;
             }
-
+            // Se for um novo caminho, cria um novo registro
             if (this.modalType === "create") {
               const response = await pathsService.createPath(this.modalPath);
-              this.paths.push(response.data.path);
+              this.paths.push(response.data.path); // Adiciona o novo caminho à lista
             } else {
+              // Caso contrário, atualiza um caminho existente
               await pathsService.updatePath(this.modalPath.id, this.modalPath);
-              await this.fetchPaths();
+              await this.fetchPaths(); // Atualiza a lista de caminhos após a edição
             }
 
+            // Fecha o modal após salvar as alterações
             this.closeModal();
         } catch (error) {
             console.error("Error saving path:", error);
         }
-        },
+      },
     },
+    //ao abrir, recebe os paths todos
     mounted() {
       this.fetchPaths();
     },

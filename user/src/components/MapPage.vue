@@ -1,32 +1,46 @@
 <template>
+  <!-- Importa a biblioteca FontAwesome para icons -->
   <link
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     rel="stylesheet"
   />
+  <!-- Container  do mapa -->
   <div class="map-container">
 
+    <!-- Div onde o mapa é renderizado -->
     <div id="map" ref="map"></div>
 
+    <!-- Container do menu de botões -->
     <div class="menu-container">
       <div class="button-container">
+
+        <!-- Botão para voltar à tela anterior -->
         <button @click="goBack" class="circle-button">
-          <i class="fas fa-arrow-left"></i>
+          <i class="fas fa-arrow-left"></i> <!-- Ícone de seta para a esquerda -->
         </button>
+
+        <!-- Botão para encontrar a localização do autocarro -->
         <button @click="goToTheBus" class="circle-button">
-          <i class="fas fa-bus"></i>
+          <i class="fas fa-bus"></i> <!-- Ícone de autocarro -->
         </button>
+
+        <!-- Botão para encontrar a localização do utilizador -->
         <button @click="goToUserLocation" class="circle-button">
-          <i class="fas fa-map-marker-alt"></i>
+          <i class="fas fa-map-marker-alt"></i> <!-- Ícone de marcador de localização -->
         </button>
+
       </div>
     </div>
+
   </div>
 </template>
 
 
+
 <script>
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import L from "leaflet"; // biblioteca para manipular o mapa
+import "leaflet/dist/leaflet.css"; // estilos do mapa
+// servicos e icons necessários
 import locationService from "@/services/locationsService";
 import pathService from "@/services/pathService"
 import busStopPng from "@/assets/busStop.png";
@@ -35,19 +49,21 @@ import userLocationPng from "@/assets/userLocationPng.png";
 
 export default {
   name: "MapPage",
-  props: ["routeId"],
+  
+  props: ["routeId"], // este valor é recebido da página de index, pois, é o 
+  // id da rota que o utilizador escolheu no index
+  
   data() {
     return {
-      map: null,
-      busMarker: null,
-      userLocationMarker: null,
-      RouteId: this.routeId,
-      busStopsLayer: L.layerGroup(),
-      markers: [],
-      updateInterval: null, 
+      map: null,  // Objeto do mapa Leaflet
+      busMarker: null, // Marcador do autocarro
+      userLocationMarker: null, // Marcador do utilizador
+      RouteId: this.routeId, // ID da rota do autocarro que o user escolheu, recebida na /L52
+      updateInterval: null, // Intervalo para atualização da localização
     };
   },
   watch: {
+    // para segurança atualiza RouteId sempre que a prop routeId mudar.
     routeId(newId) {
       this.RouteId = newId;
     },
@@ -60,7 +76,7 @@ export default {
       this.updateInterval = setInterval(async () => {
         await this.fetchLatestLocation();
         await this.getUserLocation();
-      }, 3000); // Atualiza a localização a cada 1 segundo
+      }, 3000); // Atualiza a localização a cada 3 segundos (3000 ms)
     } catch (error) {
       console.error("Error mounting:", error);
     }
@@ -92,30 +108,32 @@ export default {
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          //define o zoom maximo e mínimo que o utilizador pode fazer
           maxZoom: 19,
           minZoom: 7,
         }
       ).addTo(this.map);
 
-      // remover aquele texto que tinha embaixo no mapa
+      // remover um texto que tinha embaixo no mapa que dizia "leaflet"
       const mapAttribution = document.querySelector('.leaflet-control-attribution');
       if (mapAttribution) {
         mapAttribution.style.display = 'none';
       }
 
-      this.busStopsLayer.addTo(this.map);
       this.map.on("zoomend", this.checkZoomLevel); // verifica o nível de zoom
     },
 
-    // carrega os dados iniciais, basicamente tudo o que e preciso para abrir a pagina corretamente
+    // carrega os dados iniciais, basicamente tudo o que acontece ao abrir a pagina 
     async loadInitialData() {
       // await this.fetchBusStops();
-      await this.fetchLatestLocation();
-      await this.getUserLocation();
-      await this.goToTheBus();
+      await this.fetchLatestLocation(); //recebe a ultima loc do motorista
+      await this.getUserLocation(); // recebe a localizacao do utilizador
+      await this.goToTheBus(); // faz um zoom automatico no autocarro
       await this.drawRoute(); // desenha a rota no mapa
     },
 
+    // formula matemática para calcular as distâncias entre duas longitudes e latitudes
+    // utilizando a trignometria
     calculateDistance(lat1, lon1, lat2, lon2) {
       const R = 6371; // Raio da Terra em km
       const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -144,8 +162,13 @@ export default {
         return `${distanceInKmFormatted} km`;
       }
     },
+    // funço que desenha a rota no mapa. 
+    // O que acontece é que são recebidos todos os pontos que o administrador definiu como paragens
+    // estes valores são as longitudes e latitudes de cada paragem, com o seu respectivo nome
+    // E todos esses pontos,  recebidos como JSON, são colocados no mapa com um icon 
     async drawRoute() {
       try {
+        //chama o serviço para aquela rota e recebe as coordenadas e nome do caminho da rota escolhida
         const path = await pathService.getRoutePath(this.RouteId);
 
         if (!path || !path.route.coordinates) {
@@ -170,9 +193,12 @@ export default {
 
           marker.on("click", async () => {
             try {
-              // Obter a localização do utilizador e autocarro ao clicar no icon
+              // Obter a localização do utilizador e motorista ao clicar no icon
+              // Resumidamente ao clicar em uma paragem, esta funcao utiliza a localização do motorista e 
+              // utilizador e calcula com a função criada acima a distancia de ambos à paragem selecionada
               navigator.geolocation.getCurrentPosition(
                 async (position) => {
+                  //recebe a ultima loc do driver
                   const latestLocation = await locationService.getLatestLocation(this.RouteId);
 
                   // Extrair latitude e longitude da resposta
@@ -213,7 +239,7 @@ export default {
             }
           });
         });
-
+        // código para desenhar o trajeto
         const routeUrl = `https://router.project-osrm.org/route/v1/driving/${paragens
           .map(p => p.reverse().join(","))
           .join(";")}?overview=full&geometries=geojson`;
@@ -224,6 +250,7 @@ export default {
             const route = data.routes[0].geometry;
             L.geoJSON(route, {
               style: {
+                // estilos da rota, cor, opacidade, grossura...
                 color: "blue",
                 weight: 5,
                 opacity: 0.7,
@@ -237,47 +264,7 @@ export default {
         console.error("Erro drawing the route:", error);
       }
     },
-
-    // Carrega as paragens de autocarros no mapa
-    // async fetchBusStops() {
-    //   try {
-    //     const response = await fetch(
-    //   'https://overpass-api.de/api/interpreter?data=[out:json];node["highway"="bus_stop"](41.2366,-8.5632,41.3807,-8.3447);out;'
-    // );
-    //     const data = await response.json();
-
-    //     const busStopIcon = new L.Icon({
-    //       iconUrl: busStopPng,
-    //       iconSize: [20, 20],
-    //       iconAnchor: [10, 10],
-    //       popupAnchor: [0, -10],
-    //     });
-
-    //     data.elements.forEach((busStop) => {
-    //       const marker = L.marker([busStop.lat, busStop.lon], { icon: busStopIcon })
-    //         .bindPopup(`Paragem: ${busStop.tags.name || "Sem Nome"}`)
-    //         .addTo(this.busStopsLayer);
-
-    //       this.markers.push(marker);
-    //     });
-
-    //   } catch (err) {
-    //     console.error("Erro ao buscar paragens de autocarro:", err);
-    //   }
-    // },
-
-    // // Controla as paragens de autocarros baseadas no nível de zoom
-    // checkZoomLevel() {
-    //   if (this.map.getZoom() >= 15) {
-    //     if (!this.map.hasLayer(this.busStopsLayer)) {
-    //       this.map.addLayer(this.busStopsLayer);
-    //     }
-    //   } else {
-    //     if (this.map.hasLayer(this.busStopsLayer)) {
-    //       this.map.removeLayer(this.busStopsLayer);
-    //     }
-    //   }
-    // },
+    
     // Atualiza a localização do autocarro
     async fetchLatestLocation() {
       try {
@@ -337,6 +324,7 @@ export default {
           (position) => {
             const { latitude, longitude } = position.coords;
 
+            //cria um icon customizado
             const userIcon = new L.Icon({
               iconUrl: userLocationPng,
               iconSize: [32, 32],
@@ -344,7 +332,9 @@ export default {
               popupAnchor: [0, -32],
             });
 
-            // se o marcador do user já existir, reposiciona o
+            // se o marker do user já existir, reposiciona o
+            //isto pois havia um problema que era, o icon do user ficava a "piscar", 
+            // porque em vez de estar a reposicionar estava a ser eliminado e colocado novamente
             if (this.userLocationMarker) {
               this.userLocationMarker.setLatLng([latitude, longitude]); // atualiza a posição
             } else {
