@@ -1,20 +1,20 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://ca3e-2001-818-c5f6-ea00-d09d-62ca-e69e-c184.ngrok-free.app';  // Replace with your actual API URL
+const API_BASE_URL = 'https://backend.mybus.pt';  // Url da api
 
-// Create an axios instance
+// cria a variavel que vai comunicar com as rotas
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
     headers: {
       'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning':true,
+      // 'ngrok-skip-browser-warning':true, utilizado quando usava o ngrok para testes https
     },
   });
   
-// Function to log the user out by removing the token
+// Faz um logout do user, ao eliminar o token do mesmo do localstorage do navegador
 async function logout() {
   try {
-    localStorage.removeItem('authToken'); // Remove the token from localStorage
+    localStorage.removeItem('authToken'); // Remove do localStorage
     return true;
 
   } catch (error) {
@@ -32,7 +32,7 @@ async function isAuthenticated() {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.status; // Return the data from the response
+    return response.status; // retrurn da variavel status dentro do Response
   }catch (error) {
     console.error("Error:", error);
     throw new Error("Failed. Please try again later.");

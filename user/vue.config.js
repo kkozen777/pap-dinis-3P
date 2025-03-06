@@ -15,7 +15,7 @@ module.exports = defineConfig({
       "/manifest.json": {
         target: "http://localhost:8080",
         changeOrigin: true,
-        pathRewrite: { "^/manifest.json": "/manifest.json?ngrok-skip-browser-warning: true" },
+        pathRewrite: { "^/manifest.json": "/manifest.json?ngrok-skip-browser-warning, true" },
         headers: {
           "ngrok-skip-browser-warning": "true",
         },
